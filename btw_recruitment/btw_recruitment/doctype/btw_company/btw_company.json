@@ -1,0 +1,197 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "{company_name}.####",
+ "creation": "2025-11-14 17:59:36.157631",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_section",
+  "company_name",
+  "client_type",
+  "is_active_client",
+  "industry",
+  "no_poach_flag",
+  "replacement_policy_days",
+  "column_break_izwc",
+  "standard_fee_type",
+  "standard_fee_value",
+  "payment_terms",
+  "notes",
+  "section_break_nocm",
+  "table_knls",
+  "section_break_oxty",
+  "billing_address",
+  "billing_mail",
+  "billing_number",
+  "head_office_section",
+  "state",
+  "city",
+  "section_break_wsxr",
+  "spoc_name",
+  "spoc_email",
+  "spoc_phone"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_active_client",
+   "fieldtype": "Check",
+   "label": "Is Active Client?"
+  },
+  {
+   "fieldname": "client_type",
+   "fieldtype": "Select",
+   "label": "Client Type",
+   "options": "Recruitment Only\nConsulting Only\nRecruitment + Consulting"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Data",
+   "label": "Industry"
+  },
+  {
+   "fieldname": "head_office_section",
+   "fieldtype": "Section Break",
+   "label": "Head Office"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "section_break_oxty",
+   "fieldtype": "Section Break",
+   "label": "Billing Address"
+  },
+  {
+   "fieldname": "billing_address",
+   "fieldtype": "Data",
+   "label": "Billing Name"
+  },
+  {
+   "fieldname": "billing_mail",
+   "fieldtype": "Data",
+   "label": "Billing Email"
+  },
+  {
+   "fieldname": "billing_number",
+   "fieldtype": "Data",
+   "label": "Billing Phone"
+  },
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "section_break_wsxr",
+   "fieldtype": "Section Break",
+   "label": "SPOC"
+  },
+  {
+   "fieldname": "spoc_name",
+   "fieldtype": "Data",
+   "label": "SPOC Name"
+  },
+  {
+   "fieldname": "spoc_email",
+   "fieldtype": "Data",
+   "label": "SPOC Email"
+  },
+  {
+   "fieldname": "spoc_phone",
+   "fieldtype": "Data",
+   "label": "SPOC Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "no_poach_flag",
+   "fieldtype": "Check",
+   "label": "No Poach Flag"
+  },
+  {
+   "fieldname": "column_break_izwc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "fieldname": "replacement_policy_days",
+   "fieldtype": "Int",
+   "label": "Replacement Policy (Days)"
+  },
+  {
+   "fieldname": "standard_fee_type",
+   "fieldtype": "Select",
+   "label": "Standard Fee Type",
+   "options": "Percentage of CTC\nFlat Fee\nSlab Based\nNA"
+  },
+  {
+   "default": "0",
+   "fieldname": "standard_fee_value",
+   "fieldtype": "Float",
+   "label": "Standard Fee Value"
+  },
+  {
+   "default": "e.g., \u201cPayment within 14 days of invoice\u201d.",
+   "fieldname": "payment_terms",
+   "fieldtype": "Small Text",
+   "label": "Payment Terms"
+  },
+  {
+   "default": "Any special conditions (e.g., \u201cC-suite only\u201d, \u201cHigh priority client\u201d).",
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "section_break_nocm",
+   "fieldtype": "Section Break",
+   "label": "Job Description Lists"
+  },
+  {
+   "fieldname": "table_knls",
+   "fieldtype": "Table",
+   "options": "BTW_Company_JD"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-19 15:16:53.155655",
+ "modified_by": "Administrator",
+ "module": "BTW Recruitment",
+ "name": "BTW_Company",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

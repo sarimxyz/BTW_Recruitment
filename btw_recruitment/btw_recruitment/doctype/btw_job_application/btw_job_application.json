@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-19 14:08:10.582951",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "job_opening_id",
+  "job_opening_title",
+  "company_id",
+  "company_name",
+  "candidate_id",
+  "candidate_name",
+  "stage",
+  "recruiter",
+  "recruiter_name",
+  "datetime_tisc",
+  "interview_feedback"
+ ],
+ "fields": [
+  {
+   "fieldname": "job_opening_id",
+   "fieldtype": "Link",
+   "label": "Job Opening ID",
+   "options": "BTW_Job_Opening"
+  },
+  {
+   "fetch_from": "job_opening_id.job_title__profile",
+   "fieldname": "job_opening_title",
+   "fieldtype": "Data",
+   "label": "Job Opening Title"
+  },
+  {
+   "fieldname": "candidate_id",
+   "fieldtype": "Link",
+   "label": "Candidate ID",
+   "options": "BTW_Candidate"
+  },
+  {
+   "fetch_from": "candidate_id.candidate_name",
+   "fieldname": "candidate_name",
+   "fieldtype": "Data",
+   "label": "Candidate Name"
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Select",
+   "label": "Stage",
+   "options": "Screening\nInterview\nOffered\nRejected"
+  },
+  {
+   "fieldname": "recruiter",
+   "fieldtype": "Link",
+   "label": "Recruiter ID",
+   "options": "BTW_Recruiter"
+  },
+  {
+   "fieldname": "datetime_tisc",
+   "fieldtype": "Datetime",
+   "label": "Interview Date"
+  },
+  {
+   "fieldname": "interview_feedback",
+   "fieldtype": "Small Text",
+   "label": "Interview Feedback"
+  },
+  {
+   "fetch_from": "job_opening_id.company",
+   "fieldname": "company_id",
+   "fieldtype": "Data",
+   "label": "Company ID"
+  },
+  {
+   "fetch_from": "job_opening_id.company_name",
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fetch_from": "recruiter.name1",
+   "fieldname": "recruiter_name",
+   "fieldtype": "Data",
+   "label": "Recruiter Name"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-19 16:22:34.284520",
+ "modified_by": "Administrator",
+ "module": "BTW Recruitment",
+ "name": "BTW_Job_Application",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

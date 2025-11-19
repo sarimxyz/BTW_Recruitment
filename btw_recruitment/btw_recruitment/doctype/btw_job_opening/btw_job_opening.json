@@ -1,0 +1,286 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "{company_name}{job_title__profile}.####",
+ "creation": "2025-11-15 11:43:20.822307",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "company_name",
+  "is_active_client",
+  "job_title__profile",
+  "designation",
+  "department__function",
+  "job_description",
+  "job_responsibilities_summary",
+  "location",
+  "work_mode",
+  "travel_required",
+  "travel_details",
+  "min_experience_years",
+  "max_experience_years",
+  "min_ctc",
+  "max_ctc",
+  "working_days",
+  "working_hours",
+  "required_certifications",
+  "sla_due_date",
+  "column_break_ttxn",
+  "must_have_skills",
+  "good_to_have_skills",
+  "gender_preference",
+  "status",
+  "received_on",
+  "priority__criticality",
+  "requirement_source",
+  "urgency",
+  "sla_hours",
+  "sla_status",
+  "profiles_sent_count",
+  "number_of_positions",
+  "interviews_scheduled_count",
+  "offers_made_count",
+  "reason_for_closure",
+  "joins_count",
+  "ageing_days",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company ID(System)",
+   "options": "BTW_Company"
+  },
+  {
+   "fetch_from": "company.company_name",
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "default": "0",
+   "fetch_from": "company.is_active_client",
+   "fieldname": "is_active_client",
+   "fieldtype": "Check",
+   "label": "Is Active Client?"
+  },
+  {
+   "fieldname": "job_title__profile",
+   "fieldtype": "Data",
+   "label": "Job Title / Profile"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Designation"
+  },
+  {
+   "fieldname": "department__function",
+   "fieldtype": "Data",
+   "label": "Department / Function"
+  },
+  {
+   "fieldname": "job_description",
+   "fieldtype": "Small Text",
+   "label": "Job Description"
+  },
+  {
+   "fieldname": "job_responsibilities_summary",
+   "fieldtype": "Small Text",
+   "label": "Job Responsibilities (Summary)"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "work_mode",
+   "fieldtype": "Select",
+   "label": "Work Mode",
+   "options": "Remote\nHybrid\nOnsite"
+  },
+  {
+   "default": "0",
+   "fieldname": "travel_required",
+   "fieldtype": "Check",
+   "label": "Travel Required"
+  },
+  {
+   "fieldname": "travel_details",
+   "fieldtype": "Data",
+   "label": "Travel Details"
+  },
+  {
+   "fieldname": "min_experience_years",
+   "fieldtype": "Float",
+   "label": "Min Experience (Years)"
+  },
+  {
+   "fieldname": "max_experience_years",
+   "fieldtype": "Float",
+   "label": "Max Experience (Years)"
+  },
+  {
+   "fieldname": "min_ctc",
+   "fieldtype": "Currency",
+   "label": "Min CTC"
+  },
+  {
+   "fieldname": "max_ctc",
+   "fieldtype": "Currency",
+   "label": "Max CTC"
+  },
+  {
+   "fieldname": "working_days",
+   "fieldtype": "Data",
+   "label": "Working Days"
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Data",
+   "label": "Working Hours"
+  },
+  {
+   "fieldname": "required_certifications",
+   "fieldtype": "Data",
+   "label": "Required Certifications"
+  },
+  {
+   "fieldname": "must_have_skills",
+   "fieldtype": "Small Text",
+   "label": "Must Have Skills"
+  },
+  {
+   "fieldname": "good_to_have_skills",
+   "fieldtype": "Small Text",
+   "label": "Good to Have Skills"
+  },
+  {
+   "fieldname": "column_break_ttxn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gender_preference",
+   "fieldtype": "Select",
+   "label": "Gender Preference",
+   "options": "No Preference\nMale\nFemale\nOther"
+  },
+  {
+   "fieldname": "requirement_source",
+   "fieldtype": "Select",
+   "label": "Requirement Source",
+   "options": "Existing Client Team\nRecruiter Direct\nLinkedIn\nWhatsApp\nReference\nOther"
+  },
+  {
+   "fieldname": "received_on",
+   "fieldtype": "Date",
+   "label": "Received On"
+  },
+  {
+   "default": "48",
+   "fieldname": "sla_hours",
+   "fieldtype": "Int",
+   "label": "SLA (Hours)"
+  },
+  {
+   "fieldname": "sla_due_date",
+   "fieldtype": "Datetime",
+   "label": "SLA Due Date"
+  },
+  {
+   "fieldname": "sla_status",
+   "fieldtype": "Select",
+   "label": "SLA Status",
+   "options": "Within SLA\nBreached\nNot Started"
+  },
+  {
+   "fieldname": "priority__criticality",
+   "fieldtype": "Select",
+   "label": "Priority / Criticality",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "fieldname": "urgency",
+   "fieldtype": "Select",
+   "label": "Urgency",
+   "options": "Normal\nUrgent\nImmediate Joiner Only"
+  },
+  {
+   "fieldname": "number_of_positions",
+   "fieldtype": "Int",
+   "label": "Number of Positions"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nOn Hold\nClosed \u2013 Hired\nClosed \u2013 Cancelled"
+  },
+  {
+   "fieldname": "reason_for_closure",
+   "fieldtype": "Data",
+   "label": "Reason for Closure"
+  },
+  {
+   "fieldname": "profiles_sent_count",
+   "fieldtype": "Int",
+   "label": "Profiles Sent (Count)"
+  },
+  {
+   "fieldname": "interviews_scheduled_count",
+   "fieldtype": "Int",
+   "label": "Interviews Scheduled (Count)"
+  },
+  {
+   "fieldname": "offers_made_count",
+   "fieldtype": "Int",
+   "label": "Offers Made (Count)"
+  },
+  {
+   "fieldname": "joins_count",
+   "fieldtype": "Int",
+   "label": "Joins (Count)"
+  },
+  {
+   "fieldname": "ageing_days",
+   "fieldtype": "Int",
+   "label": "Ageing (Days)"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-19 15:21:32.539644",
+ "modified_by": "Administrator",
+ "module": "BTW Recruitment",
+ "name": "BTW_Job_Opening",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
