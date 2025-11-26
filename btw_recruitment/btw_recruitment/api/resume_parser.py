@@ -223,7 +223,7 @@ def extract_text_from_file(file_path):
 
     except Exception as e:
         debug(f"DOCX ERROR: {e}")
-        raise
+        # raise
 
 
     # -----------------------------------------
