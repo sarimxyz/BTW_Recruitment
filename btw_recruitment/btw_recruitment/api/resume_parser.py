@@ -306,7 +306,7 @@ def process_resume(docname):
     # -----------------------------------------
     # AI Parsing (your original part continues)
     # -----------------------------------------
-    api_key = frappe.local.conf.get("anthropic_api_key")
+    api_key = os.getenv("anthropic_api_key")
     client = Anthropic(api_key=api_key)
 
     prompt = f"""
