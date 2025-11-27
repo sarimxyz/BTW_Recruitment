@@ -361,7 +361,7 @@ Return JSON with these fields:
     try:
         data = frappe.parse_json(json_text)
 
-        list_fields = ["skills", "certifications"]
+        list_fields = ["skills", "certifications","languages_known"]
         for f in list_fields:
             if isinstance(data.get(f), list):
                 data[f] = ", ".join(data[f])
