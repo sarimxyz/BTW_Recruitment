@@ -7,14 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "job_opening_id",
-  "job_opening_title",
   "company_id",
-  "company_name",
   "candidate_id",
-  "candidate_name",
   "stage",
   "recruiter",
-  "recruiter_name",
   "datetime_tisc",
   "interview_feedback"
  ],
@@ -22,26 +18,14 @@
   {
    "fieldname": "job_opening_id",
    "fieldtype": "Link",
-   "label": "Job Opening ID",
+   "label": "Job Opening Title",
    "options": "DKP_Job_Opening"
-  },
-  {
-   "fetch_from": "job_opening_id.job_title__profile",
-   "fieldname": "job_opening_title",
-   "fieldtype": "Data",
-   "label": "Job Opening Title"
   },
   {
    "fieldname": "candidate_id",
    "fieldtype": "Link",
-   "label": "Candidate ID",
+   "label": "Candidate Name",
    "options": "DKP_Candidate"
-  },
-  {
-   "fetch_from": "candidate_id.candidate_name",
-   "fieldname": "candidate_name",
-   "fieldtype": "Data",
-   "label": "Candidate Name"
   },
   {
    "fieldname": "stage",
@@ -52,7 +36,7 @@
   {
    "fieldname": "recruiter",
    "fieldtype": "Link",
-   "label": "Recruiter ID",
+   "label": "Recruiter Name",
    "options": "DKP_Recruiter"
   },
   {
@@ -69,25 +53,13 @@
    "fetch_from": "job_opening_id.company",
    "fieldname": "company_id",
    "fieldtype": "Data",
-   "label": "Company ID"
-  },
-  {
-   "fetch_from": "job_opening_id.company_name",
-   "fieldname": "company_name",
-   "fieldtype": "Data",
    "label": "Company Name"
-  },
-  {
-   "fetch_from": "recruiter.name1",
-   "fieldname": "recruiter_name",
-   "fieldtype": "Data",
-   "label": "Recruiter Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-28 14:50:38.704544",
+ "modified": "2025-12-04 16:08:12.962816",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Application",
