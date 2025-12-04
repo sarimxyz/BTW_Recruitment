@@ -6,63 +6,49 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "attach_job_description",
   "company",
-  "company_name",
-  "client_status",
-  "job_title__profile",
   "designation",
   "department__function",
-  "job_description",
-  "job_responsibilities_summary",
+  "number_of_positions",
   "location",
+  "gender_preference",
   "work_mode",
+  "requirement_source",
   "travel_required",
-  "travel_details",
   "min_experience_years",
   "max_experience_years",
   "min_ctc",
   "max_ctc",
-  "working_days",
-  "working_hours",
-  "required_certifications",
-  "sla_due_date",
   "column_break_ttxn",
+  "ageing_days",
+  "priority",
+  "status",
+  "reason_for_closure",
+  "required_certifications",
+  "job_description",
   "must_have_skills",
   "good_to_have_skills",
-  "gender_preference",
-  "status",
-  "received_on",
-  "priority__criticality",
-  "requirement_source",
-  "urgency",
-  "sla_hours",
-  "sla_status",
+  "notes",
+  "hidden_fields_section",
+  "working_days",
+  "working_hours",
+  "sla_due_date",
+  "joins_count",
   "profiles_sent_count",
-  "number_of_positions",
   "interviews_scheduled_count",
   "offers_made_count",
-  "reason_for_closure",
-  "joins_count",
-  "ageing_days",
-  "notes"
+  "sla_status",
+  "sla_hours",
+  "urgency",
+  "received_on"
  ],
  "fields": [
   {
    "fieldname": "company",
    "fieldtype": "Link",
-   "label": "Company ID(System)",
+   "label": "Company Name",
    "options": "DKP_Company"
-  },
-  {
-   "fetch_from": "company.company_name",
-   "fieldname": "company_name",
-   "fieldtype": "Data",
-   "label": "Company Name"
-  },
-  {
-   "fieldname": "job_title__profile",
-   "fieldtype": "Data",
-   "label": "Job Title / Profile"
   },
   {
    "fieldname": "designation",
@@ -80,11 +66,6 @@
    "label": "Job Description"
   },
   {
-   "fieldname": "job_responsibilities_summary",
-   "fieldtype": "Small Text",
-   "label": "Job Responsibilities (Summary)"
-  },
-  {
    "fieldname": "location",
    "fieldtype": "Data",
    "label": "Location"
@@ -96,15 +77,10 @@
    "options": "Remote\nHybrid\nOnsite"
   },
   {
-   "default": "0",
    "fieldname": "travel_required",
-   "fieldtype": "Check",
-   "label": "Travel Required"
-  },
-  {
-   "fieldname": "travel_details",
-   "fieldtype": "Data",
-   "label": "Travel Details"
+   "fieldtype": "Select",
+   "label": "Travel Required",
+   "options": "\nYes\nNo"
   },
   {
    "fieldname": "min_experience_years",
@@ -129,11 +105,13 @@
   {
    "fieldname": "working_days",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Working Days"
   },
   {
    "fieldname": "working_hours",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Working Hours"
   },
   {
@@ -170,41 +148,42 @@
   {
    "fieldname": "received_on",
    "fieldtype": "Date",
+   "hidden": 1,
    "label": "Received On"
   },
   {
    "default": "48",
    "fieldname": "sla_hours",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "SLA (Hours)"
   },
   {
    "fieldname": "sla_due_date",
    "fieldtype": "Datetime",
+   "hidden": 1,
    "label": "SLA Due Date"
   },
   {
    "fieldname": "sla_status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "SLA Status",
    "options": "Within SLA\nBreached\nNot Started"
   },
   {
-   "fieldname": "priority__criticality",
-   "fieldtype": "Select",
-   "label": "Priority / Criticality",
-   "options": "Low\nMedium\nHigh\nCritical"
-  },
-  {
    "fieldname": "urgency",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Urgency",
    "options": "Normal\nUrgent\nImmediate Joiner Only"
   },
   {
+   "default": "0",
    "fieldname": "number_of_positions",
-   "fieldtype": "Int",
-   "label": "Number of Positions"
+   "fieldtype": "Select",
+   "label": "Number of Positions",
+   "options": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
   },
   {
    "fieldname": "status",
@@ -220,21 +199,25 @@
   {
    "fieldname": "profiles_sent_count",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Profiles Sent (Count)"
   },
   {
    "fieldname": "interviews_scheduled_count",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Interviews Scheduled (Count)"
   },
   {
    "fieldname": "offers_made_count",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Offers Made (Count)"
   },
   {
    "fieldname": "joins_count",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Joins (Count)"
   },
   {
@@ -248,17 +231,27 @@
    "label": "notes"
   },
   {
-   "default": "0",
-   "fetch_from": "company.client_status",
-   "fieldname": "client_status",
-   "fieldtype": "Data",
-   "label": "Client Status"
+   "fieldname": "hidden_fields_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Hidden Fields"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "fieldname": "attach_job_description",
+   "fieldtype": "Attach",
+   "label": "Attach Job Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-28 14:27:23.902021",
+ "modified": "2025-12-04 15:29:29.314935",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Opening",

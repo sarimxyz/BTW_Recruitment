@@ -217,7 +217,7 @@
   },
   {
    "fieldname": "working_hours",
-   "fieldtype": "Data",
+   "fieldtype": "Time",
    "label": "Working Hours(Start)"
   },
   {
@@ -264,14 +264,14 @@
   },
   {
    "fieldname": "working_hoursend",
-   "fieldtype": "Data",
+   "fieldtype": "Time",
    "label": "Working Hours(End)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-29 10:33:34.771713",
+ "modified": "2025-12-04 15:27:32.742688",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Company",
