@@ -1,27 +1,27 @@
 {
  "actions": [],
- "autoname": "{name1}.##",
- "creation": "2025-11-19 14:14:16.725599",
+ "autoname": "{department}.##",
+ "creation": "2025-12-08 11:39:45.675057",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "name1"
+  "department"
  ],
  "fields": [
   {
-   "fieldname": "name1",
+   "fieldname": "department",
    "fieldtype": "Data",
-   "label": "Name"
+   "label": "Department"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-08 13:12:07.578780",
+ "modified": "2025-12-08 12:02:35.355402",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
- "name": "DKP_Recruiter",
- "naming_rule": "Expression (old style)",
+ "name": "DKP_Department",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

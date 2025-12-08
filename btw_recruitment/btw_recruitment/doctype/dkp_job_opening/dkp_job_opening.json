@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": "{job_title__profile}.####",
+ "autoname": "{company}.-.{designation}.-.####",
  "creation": "2025-11-15 11:43:20.822307",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,7 +8,7 @@
   "attach_job_description",
   "company",
   "designation",
-  "department__function",
+  "department",
   "number_of_positions",
   "location",
   "gender_preference",
@@ -54,11 +53,6 @@
    "fieldname": "designation",
    "fieldtype": "Data",
    "label": "Designation"
-  },
-  {
-   "fieldname": "department__function",
-   "fieldtype": "Data",
-   "label": "Department / Function"
   },
   {
    "fieldname": "job_description",
@@ -246,12 +240,18 @@
    "fieldname": "attach_job_description",
    "fieldtype": "Attach",
    "label": "Attach Job Description"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "DKP_Department"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-04 15:29:29.314935",
+ "modified": "2025-12-08 13:19:55.588367",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Opening",

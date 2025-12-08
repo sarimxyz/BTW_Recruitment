@@ -1,37 +1,26 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": ".####",
+ "autoname": "{job_opening_title}.-.{candidate_name}.-.##",
  "creation": "2025-11-19 14:08:10.582951",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "job_opening_id",
-  "company_id",
-  "candidate_id",
+  "job_opening_title",
+  "company_name",
+  "candidate_name",
   "stage",
   "recruiter",
   "datetime_tisc",
+  "joining_date",
+  "invoice_date",
   "interview_feedback"
  ],
  "fields": [
   {
-   "fieldname": "job_opening_id",
-   "fieldtype": "Link",
-   "label": "Job Opening Title",
-   "options": "DKP_Job_Opening"
-  },
-  {
-   "fieldname": "candidate_id",
-   "fieldtype": "Link",
-   "label": "Candidate Name",
-   "options": "DKP_Candidate"
-  },
-  {
    "fieldname": "stage",
    "fieldtype": "Select",
    "label": "Stage",
-   "options": "In Review\nScreening\nInterview\nOffered\nRejected\nOffer Drop"
+   "options": "\nIn Review\nScreening\nInterview\nOffered\nRejected\nOffer Drop"
   },
   {
    "fieldname": "recruiter",
@@ -50,8 +39,30 @@
    "label": "Interview Feedback"
   },
   {
-   "fetch_from": "job_opening_id.company",
-   "fieldname": "company_id",
+   "fieldname": "joining_date",
+   "fieldtype": "Datetime",
+   "label": "Joining Date"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Datetime",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "job_opening_title",
+   "fieldtype": "Link",
+   "label": "Job Opening Title",
+   "options": "DKP_Job_Opening"
+  },
+  {
+   "fieldname": "candidate_name",
+   "fieldtype": "Link",
+   "label": "Candidate Name",
+   "options": "DKP_Candidate"
+  },
+  {
+   "fetch_from": "job_opening_title.company",
+   "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
   }
@@ -59,11 +70,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-04 16:08:12.962816",
+ "modified": "2025-12-08 13:18:17.543965",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Application",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

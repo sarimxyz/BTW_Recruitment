@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "candidate_details_section",
+  "department",
   "resume_attachment",
   "candidate_name",
   "email",
@@ -15,22 +16,27 @@
   "total_experience_years",
   "highest_qualification",
   "institute__university",
-  "column_break_cjpe",
-  "currently_employed",
-  "current_company",
-  "current_designation",
   "languages",
+  "column_break_cjpe",
+  "current_designation",
+  "current_company",
+  "currently_employed",
   "skills_tags",
+  "primary_skill_set",
+  "secondary_skill_set",
   "key_certifications",
   "preferred_locationselect_upto_3_section",
   "current_ctc",
   "expected_ctc",
+  "communication_skill",
   "column_break_xcop",
   "resume_source",
-  "last_working_day",
-  "column_break_lczr",
   "official_notice_period_days",
   "serving_notice",
+  "last_working_day",
+  "column_break_lczr",
+  "added_by",
+  "remarks",
   "job_applications_section",
   "resume_parsed"
  ],
@@ -186,12 +192,46 @@
    "fieldtype": "Select",
    "label": "Serving Notice",
    "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "primary_skill_set",
+   "fieldtype": "Data",
+   "label": "Primary Skill Set"
+  },
+  {
+   "fieldname": "secondary_skill_set",
+   "fieldtype": "Data",
+   "label": "Secondary Skill set"
+  },
+  {
+   "fieldname": "communication_skill",
+   "fieldtype": "Select",
+   "label": "Communication Skill",
+   "options": "\nGood\nAverage\nBad"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "DKP_Department",
+   "reqd": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "added_by",
+   "fieldtype": "Link",
+   "label": "Added By",
+   "options": "DKP_Recruiter"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-04 14:55:23.036991",
+ "modified": "2025-12-08 14:36:24.731332",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",
