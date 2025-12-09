@@ -8,15 +8,6 @@ frappe.ui.form.on("DKP_Candidate", {
                     args: { docname: frm.doc.name },
                     freeze: true,
                     freeze_message: "Extracting data from resume..."
-                // }).then(r => {
-                //     frappe.msgprint("Resume processed successfully! Please review highlighted fields.");
-
-                //     // Set flag on client side also (safe)
-                //     frm.doc.resume_parsed = 1;
-
-                //     // Reload & highlight
-                //     frm.reload_doc();
-                // });
                 }).then(r => {
 
                     // backend returned current docname
