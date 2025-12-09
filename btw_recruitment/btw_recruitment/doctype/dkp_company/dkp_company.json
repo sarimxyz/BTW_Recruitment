@@ -17,6 +17,8 @@
   "pf_compliance",
   "column_break_wmab",
   "head_office",
+  "name_of_director",
+  "phone_number",
   "address",
   "state",
   "city",
@@ -266,12 +268,22 @@
    "fieldname": "working_hoursend",
    "fieldtype": "Time",
    "label": "Working Hours(End)"
+  },
+  {
+   "fieldname": "name_of_director",
+   "fieldtype": "Data",
+   "label": "Name of Director"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Phone Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-04 15:27:32.742688",
+ "modified": "2025-12-08 12:04:38.759579",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Company",
