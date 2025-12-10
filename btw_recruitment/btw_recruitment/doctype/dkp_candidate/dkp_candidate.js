@@ -127,3 +127,33 @@ frappe.ui.form.on("DKP_Candidate", {
         }
     }
 });
+// frappe.ui.form.on("DKP_Candidate", {
+//     onload_post_render(frm) {
+//         remove_blank_options(frm);
+//     },
+//     refresh(frm) {
+//         remove_blank_options(frm);
+//     }
+// });
+
+// // Reusable function
+// function remove_blank_options(frm) {
+//     // Auto-detect all Select fields
+//     frm.meta.fields
+//         .filter(df => df.fieldtype === "Select")
+//         .forEach(df => {
+//             const field = frm.fields_dict[df.fieldname];
+//             if (field && field.$input) {
+//                 field.$input.find("option[value='']").remove();
+//             }
+//         });
+// }
+frappe.ui.form.on("DKP_Candidate", {
+    onload_post_render(frm) {
+        if (!frm.doc.added_by) {
+            frm.set_value("added_by", frappe.session.user);
+        }
+    }
+});
+
+
