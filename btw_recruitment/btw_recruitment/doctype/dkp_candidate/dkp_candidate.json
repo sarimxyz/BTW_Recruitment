@@ -148,7 +148,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Gender",
-   "options": "\nMale\nFemale\nNot Disclosed"
+   "options": "Male\nFemale\nNot Disclosed",
+   "placeholder": " "
   },
   {
    "fieldname": "resume_attachment",
@@ -183,7 +184,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Currently Employed",
-   "options": "Yes\nNo"
+   "options": "Yes\nNo",
+   "placeholder": "Empty"
   },
   {
    "fieldname": "official_notice_period_days",
@@ -250,7 +252,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-10 15:46:45.473089",
+ "modified": "2025-12-10 17:32:02.003664",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",
