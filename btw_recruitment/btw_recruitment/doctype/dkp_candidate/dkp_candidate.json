@@ -148,7 +148,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Gender",
-   "options": "\nMale\nFemale\nNot Disclosed"
+   "options": "Male\nFemale\nNot Disclosed",
+   "placeholder": " "
   },
   {
    "fieldname": "resume_attachment",
@@ -180,10 +181,10 @@
   },
   {
    "fieldname": "currently_employed",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Currently Employed",
-   "options": "Yes\nNo"
+   "options": "DKP_YesNo_Options"
   },
   {
    "fieldname": "official_notice_period_days",
@@ -192,9 +193,9 @@
   },
   {
    "fieldname": "serving_notice",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Serving Notice",
-   "options": "\nYes\nNo"
+   "options": "DKP_YesNo_Options"
   },
   {
    "fieldname": "primary_skill_set",
@@ -244,13 +245,13 @@
    "fieldname": "marital_status",
    "fieldtype": "Select",
    "label": "Marital Status",
-   "options": "\nSingle / Unmarried\nMarried\nDivorced\nWidowed"
+   "options": "--select--\nSingle / Unmarried\nMarried\nDivorced\nWidowed"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-10 15:46:45.473089",
+ "modified": "2025-12-11 11:36:51.062856",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",
