@@ -226,8 +226,7 @@
    "fieldname": "department",
    "fieldtype": "Link",
    "label": "Department",
-   "options": "DKP_Department",
-   "reqd": 1
+   "options": "DKP_Department"
   },
   {
    "fieldname": "remarks",
@@ -307,7 +306,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-12 16:56:21.205710",
+ "modified": "2025-12-12 17:57:45.664585",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",
