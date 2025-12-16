@@ -35,7 +35,7 @@ def execute(filters=None):
     # ---------------- ACTIVE APPLICATIONS ----------------
     active_filters = [
     ["parenttype", "=", "DKP_Job_Application"],
-    ["stage", "in", ["In Review", "Screening", "Interview","Offered"]]
+    ["stage", "in", ["", "In Review", "Screening", "Interview","Offered"]]
 ]
 
     if date_filter:

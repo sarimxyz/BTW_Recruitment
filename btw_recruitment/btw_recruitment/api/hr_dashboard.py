@@ -1,70 +1,20 @@
-# import frappe
-
-# @frappe.whitelist()
-# def get_active_applications():
-#     return frappe.db.get_all(
-#         "DKP_JobApplication_Child",
-#         fields=[
-#             "candidate_name",
-#             "stage",
-#             "interview_date",
-#             "parent as job_application"
-#         ],
-#         filters={
-#             "parenttype": "DKP_Job_Application",
-#             "stage": ["in", ["In Review", "Screening", "Interview","Offered"]]
-#         },
-#         order_by="modified desc",
-#         limit=10
-#     )
 import frappe
-
-# @frappe.whitelist()
-# def get_active_applications(limit=10, offset=0):
-#     return frappe.db.get_all(
-#         "DKP_JobApplication_Child",
-#         fields=[
-#             "candidate_name",
-#             "stage",
-#             "interview_date",
-#             "parent as job_application"
-#         ],
-#         filters={
-#             "parenttype": "DKP_Job_Application",
-#             "stage": ["in", ["In Review", "Screening", "Interview","Offered"]]
-#         },
-#         order_by="modified desc",
-#         limit_page_length=int(limit),   # <-- this replaces 'limit'
-#         limit_start=int(offset) 
-#     )
-# @frappe.whitelist()
-# def get_active_applications(limit=10, offset=0):
-#     filters = {
-#         "parenttype": "DKP_Job_Application",
-#         "stage": ["in", ["In Review", "Screening", "Interview","Offered"]]
-#     }
-#     total = frappe.db.count("DKP_JobApplication_Child", filters)
-    
-#     data = frappe.get_list(
-#         "DKP_JobApplication_Child",
-#         fields=["candidate_name", "stage", "interview_date", "parent as job_application"],
-#         filters=filters,
-#         order_by="modified desc",
-#         limit_page_length=int(limit),
-#         limit_start=int(offset)
-#     )
-    
-#     return {"total": total, "data": data}
+from frappe.utils import add_days
 @frappe.whitelist()
-def get_active_applications(limit=10, offset=0):
+def get_active_applications(limit=10, offset=0,from_date=None, to_date=None):
     limit = int(limit)
     offset = int(offset)
 
     active_filters = [
         ["parenttype", "=", "DKP_Job_Application"],
-        ["stage", "in", ["In Review", "Screening", "Interview", "Offered"]]
+        ["stage", "in", ["", "In Review", "Screening", "Interview", "Offered"]]
     ]
-
+    if from_date and to_date:
+        active_filters.append([
+            "creation",
+            "between",
+            [from_date, add_days(to_date, 1)]
+        ])
     data = frappe.get_all(
         "DKP_JobApplication_Child",
         fields=[
@@ -80,9 +30,10 @@ def get_active_applications(limit=10, offset=0):
     )
 
     total = frappe.db.count(
-        "DKP_JobApplication_Child",
-        {"parenttype": "DKP_Job_Application"}
-    )
+    "DKP_JobApplication_Child",
+    active_filters
+)
+
 
     return {
         "total": total,
@@ -109,11 +60,33 @@ def get_candidates_by_department(from_date=None, to_date=None):
     return data
 
 @frappe.whitelist()
-def get_urgent_openings():
+def get_urgent_openings(from_date=None, to_date=None):
+
+    filters = [
+        ["priority", "in", ["High", "Critical"]]
+    ]
+
+    # 🔹 DATE FILTER
+    if from_date and to_date:
+        filters.append([
+            "creation",
+            "between",
+            [from_date, add_days(to_date, 1)]
+        ])
+
     return frappe.get_all(
         "DKP_Job_Opening",
-        fields=["name", "designation", "company", "assign_recruiter", "priority", "number_of_positions","status"],
-        filters=[["priority", "in", ["High", "Critical"]]],
+        fields=[
+            "name",
+            "designation",
+            "company",
+            "assign_recruiter",
+            "priority",
+            "number_of_positions",
+            "status"
+        ],
+        filters=filters,
         order_by="modified desc"
     )
+
 

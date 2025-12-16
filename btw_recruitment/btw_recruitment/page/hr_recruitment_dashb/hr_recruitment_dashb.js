@@ -27,12 +27,6 @@ frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
         title: 'HR Recruitment Dashboard',
         single_column: true
     });
-	// Global filter state
-// let dashboard_filters = {
-//     from_date: null,
-//     to_date: null
-// };
-
 // Add Date Range filter
 page.add_field({
     fieldtype: "DateRange",
@@ -43,11 +37,10 @@ page.add_field({
         if (Array.isArray(value) && value.length === 2) {
     dashboard_filters.from_date = value[0];
     dashboard_filters.to_date = value[1];
-} else {
-    dashboard_filters.from_date = null;
-    dashboard_filters.to_date = null;
-}
-
+    } else {
+        dashboard_filters.from_date = null;
+        dashboard_filters.to_date = null;
+    }
         refresh_dashboard();
     }
 });
@@ -248,7 +241,9 @@ function load_applications_table() {
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_active_applications",
 		args: {
             limit: applications_pagination.limit,
-            offset: applications_pagination.offset
+            offset: applications_pagination.offset,
+            from_date: dashboard_filters.from_date,
+            to_date: dashboard_filters.to_date
         },
         callback: function(r) {
 			 console.log("APPLICATION API RESPONSE:", r);
@@ -270,6 +265,9 @@ function load_applications_table() {
 			applications_pagination.total = r.message.total;
             r.message.data.forEach((row, index) => {
                 const serial = applications_pagination.offset + index + 1;
+                const stageText = row.stage?.trim() || "No Assigned Stage";
+                const stageColor = stageColors[row.stage?.trim()] || "#cccccc";
+                
                 tbody.append(`
                     <tr>
                         <td>${serial}. 
@@ -282,11 +280,11 @@ function load_applications_table() {
                                 display: inline-block;
                                 padding: 4px 8px;
                                 border-radius: 12px;
-                                background-color: ${stageColors[row.stage] || "#cccccc"};
+                                background-color: ${stageColor};
                                 color: #fff;
                                 font-weight: 500;
                             ">
-                                ${row.stage}
+                                ${stageText}
                             </span>
                         </td>
                         <td>${row.interview_date || "-"}</td>
@@ -341,6 +339,10 @@ function render_applications_pagination(currentCount) {
 function render_urgent_openings_table(callback) {
     frappe.call({
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_urgent_openings",
+        args: {
+            from_date: dashboard_filters.from_date,
+            to_date: dashboard_filters.to_date
+        },
         callback: function (r) {
             if (!r.message || r.message.length === 0) {
                 if (callback) callback();
