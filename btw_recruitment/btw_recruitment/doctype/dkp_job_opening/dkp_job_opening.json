@@ -18,22 +18,21 @@
   "max_experience_years",
   "min_ctc",
   "max_ctc",
+  "variableincentive",
   "column_break_ttxn",
   "job_description",
   "priority",
   "status",
+  "sla_due_date",
   "required_certifications",
   "must_have_skills",
   "assign_recruiter",
   "good_to_have_skills",
   "notes",
-  "section_break_scrx",
-  "table_dmjx",
   "hidden_fields_section",
   "requirement_source",
   "working_days",
   "working_hours",
-  "sla_due_date",
   "joins_count",
   "profiles_sent_count",
   "interviews_scheduled_count",
@@ -56,11 +55,9 @@
    "label": "Designation"
   },
   {
-   "fetch_from": "company.city",
    "fieldname": "location",
    "fieldtype": "Data",
-   "label": "Location",
-   "reqd": 1
+   "label": "Location"
   },
   {
    "fieldname": "work_mode",
@@ -88,14 +85,14 @@
   },
   {
    "fieldname": "min_ctc",
-   "fieldtype": "Currency",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Min CTC Monthly",
    "reqd": 1
   },
   {
    "fieldname": "max_ctc",
-   "fieldtype": "Currency",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Max CTC Monthly",
    "reqd": 1
@@ -161,7 +158,6 @@
   {
    "fieldname": "sla_due_date",
    "fieldtype": "Datetime",
-   "hidden": 1,
    "label": "SLA Due Date"
   },
   {
@@ -244,16 +240,6 @@
    "options": "DKP_Department"
   },
   {
-   "fieldname": "section_break_scrx",
-   "fieldtype": "Section Break",
-   "hidden": 1
-  },
-  {
-   "fieldname": "table_dmjx",
-   "fieldtype": "Table",
-   "options": "DKP_JobApplication_Child"
-  },
-  {
    "fieldname": "assign_recruiter",
    "fieldtype": "Link",
    "label": "Assign Recruiter",
@@ -263,12 +249,17 @@
    "fieldname": "job_description",
    "fieldtype": "Small Text",
    "label": "Job Description"
+  },
+  {
+   "fieldname": "variableincentive",
+   "fieldtype": "Data",
+   "label": "Variable/Incentive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-12 17:21:03.377987",
+ "modified": "2025-12-16 18:30:17.377992",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Opening",
