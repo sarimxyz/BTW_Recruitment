@@ -112,7 +112,7 @@ def get_candidates_by_department(from_date=None, to_date=None):
 def get_urgent_openings():
     return frappe.get_all(
         "DKP_Job_Opening",
-        fields=["name", "designation", "company", "assign_recruiter", "priority", "number_of_positions"],
+        fields=["name", "designation", "company", "assign_recruiter", "priority", "number_of_positions","status"],
         filters=[["priority", "in", ["High", "Critical"]]],
         order_by="modified desc"
     )

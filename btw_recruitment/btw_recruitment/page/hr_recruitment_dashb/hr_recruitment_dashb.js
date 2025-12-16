@@ -9,16 +9,17 @@ let applications_pagination = {
     current_page: 1
 };
 const stageColors = {
-    "In Review": "#e45c33ff",   // orange
-    "Screening": "#857be7ff",   // purple
-    "Interview": "#5bc0de",   // blue
-    "Offered": "#5cb85c",     // green
-    "Rejected": "#d9534f",    // red
-    "Offer Drop": "#999999"   // gray
+    "In Review": "#D9825B",     // muted terracotta
+    "Screening": "#7F78C8",     // dusty purple
+    "Interview": "#6FAFD6",     // calm steel blue
+    "Offered": "#6FBF8F",       // muted emerald mint
+    "Rejected": "#D16B6B",      // soft brick red
+    "Offer Drop": "#8E8E8E"     // warm graphite grey
 };
+
 const priorityColors = {
-    "Critical": "#ff4f49ff",
-    "High": "#f0814eff"
+    "Critical": "#D75A5A",     // matte coral red
+    "High": "#E39A5F"          // warm amber pastel
 };
 frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
     const page = frappe.ui.make_app_page({
@@ -81,7 +82,7 @@ function load_kpis() {
             render_kpi_cards(r.message.result[0]);
 
             const chartsRow = $(`
-                <div class="row" id="charts-row" style="display:flex; gap:16px; padding:16px; "></div>
+                <div class="row" id="charts-row" style="display:flex; flex-direction: column; gap:16px; padding:16px; "></div>
             `);
             $(".hr-kpi-section").append(chartsRow);
 
@@ -114,7 +115,7 @@ function render_stage_chart(chart_data, container) {
         },
         barOptions: {
             stacked: true,
-            spaceRatio: 0.6
+            spaceRatio: 0.5
         }
     };
 
@@ -135,7 +136,8 @@ function render_kpi_cards(data) {
         { label: "Total Candidates", value: data.total_candidates },
         { label: "Blacklisted Candidates", value: data.blacklisted_candidates },
         { label: "Active Applications", value: data.active_applications },
-        { label: "Jobs Offered", value: data.offers_released }
+        { label: "Jobs Offered", value: data.offers_released },
+        { label: "Total Job Openings", value: data.total_job_openings }
     ];
 
     const $row = $("#hr-kpi-cards");
@@ -143,7 +145,7 @@ function render_kpi_cards(data) {
 
     cards.forEach(card => {
         $(`
-            <div class="col-sm-3">
+            <div class="kpi-col">
                 <div class="card kpi-card">
                     <div class="kpi-value">${card.value}</div>
                     <div class="kpi-label">${card.label}</div>
@@ -156,12 +158,21 @@ $("<style>")
     .prop("type", "text/css")
     .html(`
         .kpi-card {
-            padding: 14px;
+            padding: 10px;
             text-align: center;
             border-radius: 8px;
             background: #ffffff;
             box-shadow: 0 1px 4px rgba(0,0,0,0.08);
             height: 100%;
+        }
+        #hr-kpi-cards {
+            display: flex;
+            gap: 12px;
+            padding: 0 16px;
+        }
+        .kpi-col {
+            flex: 1;
+
         }
         .kpi-value {
             font-size: 20px;
@@ -348,6 +359,7 @@ function render_urgent_openings_table(callback) {
                                 <th>Recruiter</th>
                                 <th>Priority</th>
                                 <th>Positions</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="urgent-openings-body"></tbody>
@@ -381,6 +393,7 @@ function render_urgent_openings_table(callback) {
                             </span>
                         </td>
                         <td>${row.number_of_positions || "0"}</td>
+                        <td>${row.status || "-"}</td>
                     </tr>
                 `);
             });

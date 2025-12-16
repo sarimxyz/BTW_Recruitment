@@ -1,12 +1,3 @@
-# # Copyright (c) 2025, Sarim and contributors
-# # For license information, please see license.txt
-
-# # import frappe
-
-
-# def execute(filters=None):
-# 	columns, data = [], []
-# 	return columns, data
 import frappe
 from frappe.utils import get_datetime, add_days
 def get_date_filter(filters):
@@ -33,6 +24,8 @@ def execute(filters=None):
         {"label": "Blacklisted Candidates", "fieldname": "blacklisted_candidates", "fieldtype": "Int"},
         {"label": "Active Applications", "fieldname": "active_applications", "fieldtype": "Int"},
         {"label": "Jobs Offered", "fieldname": "offers_released", "fieldtype": "Int"},
+            {"label": "Total Job Openings", "fieldname": "total_job_openings", "fieldtype": "Int"},
+
     ]
 
     total_candidates = frappe.db.count("DKP_Candidate")
@@ -66,12 +59,23 @@ def execute(filters=None):
         "DKP_JobApplication_Child",
         offer_filters
     )
+    # ---------------- TOTAL JOB OPENINGS ----------------
+    job_opening_filters = []
+
+    if date_filter:
+        job_opening_filters.append(["creation", *date_filter])
+
+    total_job_openings = frappe.db.count(
+        "DKP_Job_Opening",
+        job_opening_filters
+    )
 
     data = [{
         "total_candidates": total_candidates,
         "blacklisted_candidates": blacklisted_candidates,
         "active_applications": active_applications,
-        "offers_released": offers_released
+        "offers_released": offers_released,
+        "total_job_openings": total_job_openings
     }]
 
     # ---------------- CHART DATA ----------------
