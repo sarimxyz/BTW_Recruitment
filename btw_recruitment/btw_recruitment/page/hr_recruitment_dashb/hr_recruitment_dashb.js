@@ -28,37 +28,59 @@ frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
         single_column: true
     });
 // Add Date Range filter
+// From Date
 page.add_field({
-    fieldtype: "DateRange",
-    fieldname: "date_range",
-    label: "Date Range",
+    label: 'From Date',
+    fieldtype: 'Date',
+    fieldname: 'from_date',
     change() {
-        const value = page.fields_dict.date_range.get_value();
-        if (Array.isArray(value) && value.length === 2) {
-    dashboard_filters.from_date = value[0];
-    dashboard_filters.to_date = value[1];
-    } else {
-        dashboard_filters.from_date = null;
-        dashboard_filters.to_date = null;
-    }
+        dashboard_filters.from_date = this.value;
         refresh_dashboard();
     }
 });
+
+// To Date
+page.add_field({
+    label: 'To Date',
+    fieldtype: 'Date',
+    fieldname: 'to_date',
+    change() {
+        dashboard_filters.to_date = this.value;
+        refresh_dashboard();
+    }
+});
+
     // KPI container
-    $(`
-        <div class="hr-kpi-section" style="margin-top: 16px;">
-            <div class="row" id="hr-kpi-cards"></div>
-        </div>
-    `).appendTo(page.body);
+       $(`
+    <div class="hr-kpi-section mt-3">
+        <div class="row" id="hr-kpi-cards"></div>
+
+        <div id="pipeline-section"></div>
+        <div id="department-section"></div>
+        <div id="urgent-openings-section"></div>
+
+        <div id="applications-section"></div>
+    </div>
+`).appendTo(page.body);
+
+
 
     load_kpis();
 };
 function refresh_dashboard() {
     $("#hr-kpi-cards").empty();
-    $(".card").not(".kpi-card").remove();
+    $("#pipeline-section").empty();
+    $("#department-section").empty();
+    $("#applications-section").empty();
+    $("#urgent-openings-section").empty();
+
+    applications_pagination.offset = 0;
+    applications_pagination.current_page = 1;
 
     load_kpis();
 }
+
+
 function load_kpis() {
     frappe.call({
         method: "frappe.desk.query_report.run",
@@ -72,58 +94,20 @@ function load_kpis() {
         callback: function(r) {
             if (!r.message || !r.message.result) return;
 
+            // KPIs
             render_kpi_cards(r.message.result[0]);
 
-            const chartsRow = $(`
-                <div class="row" id="charts-row" style="display:flex; flex-direction: column; gap:16px; padding:16px; "></div>
-            `);
-            $(".hr-kpi-section").append(chartsRow);
-
+            // Charts & Tables (each owns its section)
             if (r.message.chart) {
-                render_stage_chart(r.message.chart, chartsRow);
+                render_stage_chart(r.message.chart);
             }
-            render_department_pie_chart(chartsRow);
-            render_urgent_openings_table(() => {
-                render_applications_table();
-            });
+
+            render_department_pie_chart();
+            render_applications_table();
+            render_urgent_openings_table();
         }
     });
 }
-function render_stage_chart(chart_data, container) {
-    const labels = chart_data.data.labels;
-    const values = chart_data.data.datasets[0].values;
-
-    const datasets = labels.map((label, index) => ({
-        name: label,
-        values: labels.map((_, i) => i === index ? values[index] : 0),
-        chartType: "bar",
-        color: stageColors[label] || "#cccccc"
-    }));
-
-    const updated_chart_data = {
-        type: "bar",
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        barOptions: {
-            stacked: true,
-            spaceRatio: 0.5
-        }
-    };
-
-    const chart_container = $(`
-        <div class="card" style="flex:1; padding:16px;">
-            <h4>Candidate Pipeline</h4>
-            <div id="stage-chart"></div>
-        </div>
-    `);
-
-    container.append(chart_container);
-
-    frappe.utils.make_chart("#stage-chart", updated_chart_data);
-}
-
 function render_kpi_cards(data) {
     const cards = [
         { label: "Total Candidates", value: data.total_candidates },
@@ -178,7 +162,50 @@ $("<style>")
         }
     `)
     .appendTo("head");
-function render_department_pie_chart(container) {
+function render_stage_chart(chart_data) {
+    const $section = $("#pipeline-section");
+    $section.empty();
+
+    const labels = chart_data.data.labels;
+    const values = chart_data.data.datasets[0].values;
+
+    const datasets = labels.map((label, index) => ({
+        name: label,
+        values: labels.map((_, i) => i === index ? values[index] : 0),
+        chartType: "bar",
+        color: stageColors[label] || "#cccccc"
+    }));
+
+    const updated_chart_data = {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        barOptions: {
+            stacked: true,
+            spaceRatio: 0.5
+        }
+    };
+
+    const chart_container = $(`
+        <div class="card" style="padding:16px; margin-top: 20px;">
+            <h4>Candidate Pipeline</h4>
+            <div id="stage-chart"></div>
+        </div>
+    `);
+
+    $section.append(chart_container);
+
+    frappe.utils.make_chart("#stage-chart", updated_chart_data);
+}
+
+
+
+function render_department_pie_chart() {
+    const $section = $("#department-section");
+    $section.empty();
+
     frappe.call({
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_candidates_by_department",
         args: {
@@ -186,56 +213,74 @@ function render_department_pie_chart(container) {
             to_date: dashboard_filters.to_date
         },
         callback: function(r) {
-            if (!r.message || r.message.length === 0) return;
+            if (!r.message || r.message.length === 0) {
+                $section.append(`
+                    <div class="card p-3 text-muted text-center">
+                        No department data
+                    </div>
+                `);
+                return;
+            }
 
             const labels = r.message.map(d => d.department);
             const values = r.message.map(d => d.count);
 
-			const chart_container = $(`
-                <div class="card" style="flex:1; padding:16px;">
+            const chart_container = $(`
+                <div class="card" style="padding:16px; margin-top: 20px;">
                     <h4>Candidates by Department</h4>
                     <div id="department-pie-chart"></div>
                 </div>
             `);
 
-            container.append(chart_container);
+            $section.append(chart_container);
 
             frappe.utils.make_chart("#department-pie-chart", {
                 data: {
                     labels: labels,
-                    datasets: [{name: "Candidates", values: values}]
+                    datasets: [{ name: "Candidates", values }]
                 },
                 type: "pie"
             });
         }
     });
 }
+
 function render_applications_table() {
+    const $section = $("#applications-section");
+    $section.empty();
+
     const table_container = $(`
-        <div class="card" style="margin-top: 20px; padding: 16px;">
+        <div class="card" id="applications-table-wrapper" style="margin-top: 20px; padding: 16px; margin-bottom: 40px;">
             <h4>Active Applications</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Candidate</th>
-                        <th>Stage</th>
-                        <th>Interview Date</th>
-                        <th>Application</th>
-                    </tr>
-                </thead>
-                <tbody id="applications-table-body">
-                    <tr>
-                        <td colspan="4" class="text-muted text-center">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <div id="applications-table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Stage</th>
+                            <th>Interview Date</th>
+                            <th>Application</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-table-body">
+                        <tr>
+                            <td colspan="4" class="text-muted text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="applications-pagination-container" class="mt-2"></div>
         </div>
     `);
 
-    $(".hr-kpi-section").append(table_container);
+    $section.append(table_container);
 
     load_applications_table();
 }
+
+
 function load_applications_table() {
     frappe.call({
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_active_applications",
@@ -252,16 +297,20 @@ function load_applications_table() {
             const tbody = $("#applications-table-body");
             tbody.empty();
 
-            if (!r.message || r.message.length === 0 || r.message.data.length === 0) {
-                tbody.append(`
-                    <tr>
-                        <td colspan="4" class="text-muted text-center">
-                            No active applications
-                        </td>
-                    </tr>
-                `);
-                return;
-            }
+            if (!r.message || !r.message.data || r.message.data.length === 0) {
+    tbody.html(`
+        <tr>
+            <td colspan="4" class="text-muted text-center">
+                No active applications
+            </td>
+        </tr>
+    `);
+
+    $("#applications-pagination-container").empty();
+
+    return;
+}
+
 			applications_pagination.total = r.message.total;
             r.message.data.forEach((row, index) => {
                 const serial = applications_pagination.offset + index + 1;
@@ -315,7 +364,8 @@ function render_applications_pagination(currentCount) {
         </div>
     `);
 
-    $(".hr-kpi-section").append(container);
+    $("#applications-pagination-container").append(container);
+
 
     if (applications_pagination.current_page === 1) $("#prev-page").attr("disabled", true);
     if (applications_pagination.current_page === totalPages) $("#next-page").attr("disabled", true);
@@ -337,6 +387,9 @@ function render_applications_pagination(currentCount) {
     });
 }
 function render_urgent_openings_table(callback) {
+    const $section = $("#urgent-openings-section");
+    $section.empty();
+
     frappe.call({
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_urgent_openings",
         args: {
@@ -344,13 +397,25 @@ function render_urgent_openings_table(callback) {
             to_date: dashboard_filters.to_date
         },
         callback: function (r) {
+
+            // Empty state
             if (!r.message || r.message.length === 0) {
+                const empty_card = $(`
+                    <div class="card" style="margin-top:20px; padding:16px;">
+                        <h4>🚨 Urgent Openings</h4>
+                        <div class="text-muted text-center">
+                            No urgent openings
+                        </div>
+                    </div>
+                `);
+
+                $section.append(empty_card);
                 if (callback) callback();
                 return;
             }
 
             const table_container = $(`
-                <div class="card" style="margin-top:20px; padding:16px;">
+                <div class="card" style="margin-top:20px; padding:16px; margin-bottom: 20px;">
                     <h4>🚨 Urgent Openings</h4>
                     <table class="table table-bordered">
                         <thead>
@@ -369,9 +434,10 @@ function render_urgent_openings_table(callback) {
                 </div>
             `);
 
-            $(".hr-kpi-section").append(table_container);
+            $section.append(table_container);
 
-            const tbody = $("#urgent-openings-body");
+            const tbody = table_container.find("#urgent-openings-body");
+
             r.message.forEach((row, index) => {
                 tbody.append(`
                     <tr>
@@ -389,9 +455,9 @@ function render_urgent_openings_table(callback) {
                                 border-radius:12px;
                                 color:#fff;
                                 font-weight:600;
-                                background:${priorityColors[row.priority]};
+                                background:${priorityColors[row.priority] || "#6c757d"};
                             ">
-                                ${row.priority}
+                                ${row.priority || "-"}
                             </span>
                         </td>
                         <td>${row.number_of_positions || "0"}</td>
@@ -404,4 +470,5 @@ function render_urgent_openings_table(callback) {
         }
     });
 }
+
 
