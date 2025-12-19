@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-12-16 12:47:09.326675",
+ "modified": "2025-12-19 10:39:27.615977",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "hr-recruitment-dashb",
@@ -13,6 +13,12 @@
  "roles": [
   {
    "role": "Administrator"
+  },
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "BTW Recruiter"
   }
  ],
  "script": null,

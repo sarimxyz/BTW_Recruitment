@@ -37,13 +37,17 @@ frappe.pages['hr-recruitment-jobs'].on_page_load = function(wrapper) {
             <div class="row" id="job-kpi-cards"></div>
 
             <div class="row mt-4">
-                <div class="col-md-6">
-                    <div id="job-status-chart"></div>
-                </div>
-                <div class="col-md-6">
-                    <div id="job-department-chart"></div>
-                </div>
-            </div>
+    <div class="col-md-12">
+        <div id="job-status-chart"></div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div id="job-department-chart"></div>
+    </div>
+</div>
+
 
             <div class="row mt-4">
                 <div class="col-md-12">
@@ -171,14 +175,6 @@ const JOB_STATUS_COLORS = {
 };
 
 function render_job_charts(chart) {
-    // Status Distribution Chart
-    // const status_chart = new frappe.Chart("#job-status-chart", {
-    //     title: "Job Status Distribution",
-    //     data: chart.data,
-    //     type: chart.type || "bar",
-    //     height: 250,
-    //     colors: ['#5bc0de', '#f0ad4e', '#5cb85c', '#d9534f']
-    // });
 	const labels = chart.data.labels;
     const values = chart.data.datasets[0].values;
 
@@ -189,7 +185,6 @@ function render_job_charts(chart) {
             name: label,
             values: labels.map((_, i) => i === index ? values[index] : 0),
             chartType: "bar",
-            // color: JOB_STATUS_COLORS[key] || "#cccccc"
         };
     });
 
@@ -199,7 +194,7 @@ function render_job_charts(chart) {
             labels,
             datasets
         },
-        type: "pie",
+        type: "donut",
         height: 250
     });
 
@@ -226,7 +221,10 @@ function render_job_charts(chart) {
                     },
                     type: "bar",
                     height: 250,
-                    colors: ['#857be7']
+                    colors: ['#857be7'],
+                    barOptions: {
+                        spaceRatio: 0.75
+                    }
                 });
             }
         }
@@ -250,25 +248,6 @@ function load_job_health() {
             }
         }
     });
-}
-function render_status_badge(status) {
-    const key = normalize_status(status);
-    const color = JOB_STATUS_COLORS[key] || "#d3c0c0ff";
-
-    return `
-        <span style="
-            background:${color};
-            color:#fff;
-            padding:4px 10px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:500;
-            white-space:nowrap;
-            display:inline-block;
-        ">
-            ${status || "-"}
-        </span>
-    `;
 }
 
 function render_priority_badge(priority) {
