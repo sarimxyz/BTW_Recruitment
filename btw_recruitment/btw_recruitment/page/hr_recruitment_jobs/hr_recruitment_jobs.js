@@ -2,6 +2,11 @@ let job_dashboard_filters = {
     from_date: null,
     to_date: null
 };
+let job_health_filters = {
+    department: null,
+    priority: null,
+    sla_status: null
+};
 
 frappe.pages['hr-recruitment-jobs'].on_page_load = function(wrapper) {
     const page = frappe.ui.make_app_page({
@@ -37,37 +42,103 @@ frappe.pages['hr-recruitment-jobs'].on_page_load = function(wrapper) {
             <div class="row" id="job-kpi-cards"></div>
 
             <div class="row mt-4">
-                <div class="col-md-6">
-                    <div id="job-status-chart"></div>
-                </div>
-                <div class="col-md-6">
-                    <div id="job-department-chart"></div>
-                </div>
-            </div>
+    <div class="col-md-12">
+        <div id="job-status-chart"></div>
+    </div>
+        </div>
 
-            <div class="row mt-4">
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div id="job-department-chart"></div>
+            </div>
+        </div>
+
+
+            <div class="row mt-4 mb-4">
                 <div class="col-md-12">
                     <h4>Job Health Overview</h4>
+                <div class="row mb-3" id="job-health-table-filters">
+                    <div class="col-md-3">
+                        <select class="form-control" id="filter-department">
+                            <option value="">Department</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select class="form-control" id="filter-priority">
+                            <option value="">Priority</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select class="form-control" id="filter-sla-status">
+                            <option value="">SLA Status</option>
+                            <option value="Open">Open</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Closed – Hired">Closed – Hired</option>
+                            <option value="Closed – Cancelled">Closed – Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-sm btn-secondary" id="clear-job-filters">
+                            Clear Filters
+                        </button>
+                    </div>
+
+                </div>
+
                     <div id="job-health-table"></div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h4>Urgent Job Openings</h4>
-                    <div id="urgent-jobs-table"></div>
-                </div>
-            </div>
+            
         </div>
     `).appendTo(page.body);
 
+    $(document).on("change", "#filter-department, #filter-priority, #filter-sla-status", function () {
+    job_health_filters.department = $("#filter-department").val() || null;
+    job_health_filters.priority = $("#filter-priority").val() || null;
+    job_health_filters.sla_status = $("#filter-sla-status").val() || null;
+
+    // Reset pagination
+    job_health_offset = 0;
+
+    // Reload table
+    load_job_health();
+
+     $(document).on("click", "#clear-job-filters", function() {
+    // Reset UI selects
+    $("#filter-department").val("");
+    $("#filter-priority").val("");
+    $("#filter-sla-status").val("");
+
+    // Reset filter state object
+    job_health_filters = {
+        department: null,
+        priority: null,
+        sla_status: null
+    };
+
+    // Reset pagination
+    job_health_offset = 0;
+
+    // Reload table
+    load_job_health();
+});
+});
+   
+    load_department_filter_options()
     // Initial load (VERY IMPORTANT)
     load_job_dashboard();
 };
 function load_job_dashboard() {
     load_job_kpis();
 	load_job_health();
-	load_urgent_jobs();
+	// load_urgent_jobs();
 }
 
 function load_job_kpis() {
@@ -171,14 +242,6 @@ const JOB_STATUS_COLORS = {
 };
 
 function render_job_charts(chart) {
-    // Status Distribution Chart
-    // const status_chart = new frappe.Chart("#job-status-chart", {
-    //     title: "Job Status Distribution",
-    //     data: chart.data,
-    //     type: chart.type || "bar",
-    //     height: 250,
-    //     colors: ['#5bc0de', '#f0ad4e', '#5cb85c', '#d9534f']
-    // });
 	const labels = chart.data.labels;
     const values = chart.data.datasets[0].values;
 
@@ -189,7 +252,6 @@ function render_job_charts(chart) {
             name: label,
             values: labels.map((_, i) => i === index ? values[index] : 0),
             chartType: "bar",
-            // color: JOB_STATUS_COLORS[key] || "#cccccc"
         };
     });
 
@@ -199,7 +261,7 @@ function render_job_charts(chart) {
             labels,
             datasets
         },
-        type: "pie",
+        type: "donut",
         height: 250
     });
 
@@ -226,7 +288,10 @@ function render_job_charts(chart) {
                     },
                     type: "bar",
                     height: 250,
-                    colors: ['#857be7']
+                    colors: ['#857be7'],
+                    barOptions: {
+                        spaceRatio: 0.75
+                    }
                 });
             }
         }
@@ -242,7 +307,10 @@ function load_job_health() {
             from_date: job_dashboard_filters.from_date,
             to_date: job_dashboard_filters.to_date,
             limit: job_health_limit,
-            offset: job_health_offset
+            offset: job_health_offset,
+             department: job_health_filters.department,
+        priority: job_health_filters.priority,
+        sla_status: job_health_filters.sla_status,
         },
         callback(r) {
             if(r.message) {
@@ -250,25 +318,6 @@ function load_job_health() {
             }
         }
     });
-}
-function render_status_badge(status) {
-    const key = normalize_status(status);
-    const color = JOB_STATUS_COLORS[key] || "#d3c0c0ff";
-
-    return `
-        <span style="
-            background:${color};
-            color:#fff;
-            padding:4px 10px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:500;
-            white-space:nowrap;
-            display:inline-block;
-        ">
-            ${status || "-"}
-        </span>
-    `;
 }
 
 function render_priority_badge(priority) {
@@ -303,10 +352,10 @@ function render_sla_badge(status) {
 
     let color = "#6c757d"; // default grey
 
-    if (s === "on track") color = "#5cb85c";       // green
+    if (s === "on track") color = "#00c3ff81";       // green
     else if (s === "at risk") color = "#f0ad4e";   // amber
     else if (s === "breached") color = "#d9534f";  // red
-    else if (s === "closed") color = "#5bc0de";    // blue
+    else if (s === "closed – hired") color = "#5cb85c";    // blue
 
     return `
         <span style="
@@ -390,85 +439,109 @@ function render_job_health_table(data, total) {
         load_job_health();
     });
 }
-let urgent_jobs_offset = 0;
-const urgent_jobs_limit = 10; // 2 rows per page
-
-function load_urgent_jobs() {
+function load_department_filter_options() {
     frappe.call({
-        method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_urgent_openings_jobs",
+        method: "frappe.client.get_list",
         args: {
-            from_date: job_dashboard_filters.from_date,
-            to_date: job_dashboard_filters.to_date,
-            limit: urgent_jobs_limit,
-            offset: urgent_jobs_offset
+            doctype: "DKP_Job_Opening",
+            fields: ["department"],
+            distinct: true,
+            filters: [["department", "is", "set"]],
+            limit_page_length: 1000
         },
         callback(r) {
             if (r.message) {
-                render_urgent_jobs_table(r.message.data, r.message.total);
+                const $dept = $("#filter-department");
+                $dept.find("option:not(:first)").remove(); // clear old options
+                r.message.forEach(d => {
+                    if (d.department) {
+                        $dept.append(`<option value="${d.department}">${d.department}</option>`);
+                    }
+                });
             }
         }
     });
 }
 
-function render_urgent_jobs_table(data, total) {
-    const $container = $("#urgent-jobs-table");
-    $container.empty();
+// let urgent_jobs_offset = 0;
+// const urgent_jobs_limit = 10; // 2 rows per page
 
-    const table = $(`
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Job Opening</th>
-					<th>Designation</th>
-                    <th>Company</th>
-                    <th>Assign Recruiter</th>
-                    <th>Priority</th>
-                    <th>Positions</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    `);
+// function load_urgent_jobs() {
+//     frappe.call({
+//         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_urgent_openings_jobs",
+//         args: {
+//             from_date: job_dashboard_filters.from_date,
+//             to_date: job_dashboard_filters.to_date,
+//             limit: urgent_jobs_limit,
+//             offset: urgent_jobs_offset
+//         },
+//         callback(r) {
+//             if (r.message) {
+//                 render_urgent_jobs_table(r.message.data, r.message.total);
+//             }
+//         }
+//     });
+// }
 
-    data.forEach(d => {
-        $(`
-            <tr>
-                <td><a href="/app/dkp_job_opening/${d.name}">${d.name || '-'}</a></td>
-                <td>${d.designation || '-'}</td>
+// function render_urgent_jobs_table(data, total) {
+//     const $container = $("#urgent-jobs-table");
+//     $container.empty();
 
-                <td>${d.company || '-'}</td>
-                <td>${d.assign_recruiter || '-'}</td>
-                <td>${d.priority || '-'}</td>
-                <td>${d.number_of_positions || 0}</td>
-                <td>${d.status || '-'}</td>
-            </tr>
-        `).appendTo(table.find("tbody"));
-    });
+//     const table = $(`
+//         <table class="table table-bordered table-striped">
+//             <thead>
+//                 <tr>
+//                     <th>Job Opening</th>
+// 					<th>Designation</th>
+//                     <th>Company</th>
+//                     <th>Assign Recruiter</th>
+//                     <th>Priority</th>
+//                     <th>Positions</th>
+//                     <th>Status</th>
+//                 </tr>
+//             </thead>
+//             <tbody></tbody>
+//         </table>
+//     `);
 
-    $container.append(table);
+//     data.forEach(d => {
+//         $(`
+//             <tr>
+//                 <td><a href="/app/dkp_job_opening/${d.name}">${d.name || '-'}</a></td>
+//                 <td>${d.designation || '-'}</td>
 
-    // Pagination
-    const total_pages = Math.ceil(total / urgent_jobs_limit);
-    const current_page = Math.floor(urgent_jobs_offset / urgent_jobs_limit) + 1;
+//                 <td>${d.company || '-'}</td>
+//                 <td>${d.assign_recruiter || '-'}</td>
+//                 <td>${d.priority || '-'}</td>
+//                 <td>${d.number_of_positions || 0}</td>
+//                 <td>${d.status || '-'}</td>
+//             </tr>
+//         `).appendTo(table.find("tbody"));
+//     });
 
-    const pagination = $(`
-        <div class="mt-2">
-            <button class="btn btn-sm btn-primary" id="urgent-prev-page">Prev</button>
-            Page ${current_page} of ${total_pages}
-            <button class="btn btn-sm btn-primary" id="urgent-next-page">Next</button>
-        </div>
-    `);
+//     $container.append(table);
 
-    $container.append(pagination);
+//     // Pagination
+//     const total_pages = Math.ceil(total / urgent_jobs_limit);
+//     const current_page = Math.floor(urgent_jobs_offset / urgent_jobs_limit) + 1;
 
-    $("#urgent-prev-page").prop("disabled", urgent_jobs_offset === 0).click(() => {
-        urgent_jobs_offset -= urgent_jobs_limit;
-        load_urgent_jobs();
-    });
+//     const pagination = $(`
+//         <div class="mt-2">
+//             <button class="btn btn-sm btn-primary" id="urgent-prev-page">Prev</button>
+//             Page ${current_page} of ${total_pages}
+//             <button class="btn btn-sm btn-primary" id="urgent-next-page">Next</button>
+//         </div>
+//     `);
 
-    $("#urgent-next-page").prop("disabled", current_page >= total_pages).click(() => {
-        urgent_jobs_offset += urgent_jobs_limit;
-        load_urgent_jobs();
-    });
-}
+//     $container.append(pagination);
+
+//     $("#urgent-prev-page").prop("disabled", urgent_jobs_offset === 0).click(() => {
+//         urgent_jobs_offset -= urgent_jobs_limit;
+//         load_urgent_jobs();
+//     });
+
+//     $("#urgent-next-page").prop("disabled", current_page >= total_pages).click(() => {
+//         urgent_jobs_offset += urgent_jobs_limit;
+//         load_urgent_jobs();
+//     });
+// }

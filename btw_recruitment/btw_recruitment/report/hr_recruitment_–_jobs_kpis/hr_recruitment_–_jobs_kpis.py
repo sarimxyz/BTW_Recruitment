@@ -42,13 +42,6 @@ def execute(filters=None):
         "DKP_Job_Opening",
         job_filters + [["status", "=", "Open"]]
     )
-
-    # ---------------- TOTAL POSITIONS ----------------
-    # total_positions = frappe.db.sql("""
-    #     SELECT COALESCE(SUM(number_of_positions), 0)
-    #     FROM `tabDKP_Job_Opening`
-    #     WHERE status = 'Open'
-    # """)[0][0]
     # ---------------- TOTAL POSITIONS ----------------
     position_filters = [["status", "=", "Open"]]
 
@@ -102,14 +95,6 @@ def execute(filters=None):
             job_filters + [["status", "=", status]]
         )
         status_counts.append(count)
-
-    # ---------------- CHART: DEPARTMENT WISE ----------------
-    dept_data = frappe.db.sql("""
-        SELECT department, COUNT(name)
-        FROM `tabDKP_Job_Opening`
-        WHERE department IS NOT NULL
-        GROUP BY department
-    """)
 
     chart = {
         "data": {

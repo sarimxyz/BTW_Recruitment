@@ -1,15 +1,15 @@
 {
  "content": null,
- "creation": "2025-12-15 00:09:47.291043",
+ "creation": "2025-12-19 14:09:13.655939",
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-12-19 10:39:27.615977",
+ "modified": "2025-12-19 14:09:13.655939",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
- "name": "hr-recruitment-dashb",
+ "name": "hr-recruitment-compa",
  "owner": "Administrator",
- "page_name": "hr-recruitment-dashb",
+ "page_name": "hr-recruitment-compa",
  "roles": [
   {
    "role": "Administrator"
@@ -19,11 +19,12 @@
   },
   {
    "role": "BTW Recruiter"
-  }
+  },
+  {}
  ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 1,
- "title": "HR Recruitment Dashboard"
+ "title": "HR Recruitment Company"
 }

@@ -88,100 +88,13 @@ def get_urgent_openings(from_date=None, to_date=None):
         filters=filters,
         order_by="modified desc"
     )
-
-# import frappe
-# from frappe.utils import now_datetime, add_days
-
-# @frappe.whitelist()
-# def get_job_health(from_date=None, to_date=None):
-#     job_filters = []
-
-#     # Date filter (same pattern as everywhere)
-#     if from_date and to_date:
-#         job_filters.append([
-#             "creation",
-#             "between",
-#             [from_date, add_days(to_date, 1)]
-#         ])
-
-#     jobs = frappe.get_all(
-#         "DKP_Job_Opening",
-#         fields=[
-#             "name",
-#             "designation",
-#             "department",
-#             "number_of_positions",
-#             "status",
-#             "priority",
-#             "sla_due_date"
-#         ],
-#         filters=job_filters
-#     )
-
-#     now = now_datetime()
-#     result = []
-
-#     for job in jobs:
-#         # ---------------- CANDIDATE COUNT ----------------
-#         job_applications = frappe.get_all(
-#             "DKP_Job_Application",
-#             filters={
-#                 "job_opening_title": job.name
-#             },
-#             pluck="name"
-#         )
-
-#         candidate_count = 0
-
-#         if job_applications:
-#             candidate_count = frappe.db.count(
-#                 "DKP_JobApplication_Child",
-#                 {
-#                     "parent": ["in", job_applications],
-#                     "parenttype": "DKP_Job_Application",
-#                     "stage": ["in", ["In Review", "Screening", "Interview", "Offered"]]
-#                 }
-#             )
-
-#         positions = int(job.number_of_positions or 0)
-
-
-#         # ---------------- FILL % ----------------
-#         fill_percent = (
-#             round((candidate_count / positions) * 100, 1)
-#             if positions > 0 else 0
-#         )
-
-#         # ---------------- OVER CAPACITY ----------------
-#         over_capacity = candidate_count > positions if positions else False
-
-#         # ---------------- SLA STATUS ----------------
-#         sla_status = "On Track"
-
-#         if job.sla_due_date:
-#             if job.sla_due_date < now:
-#                 sla_status = "Breached"
-#             elif job.sla_due_date <= add_days(now, 3):
-#                 sla_status = "At Risk"
-
-#         result.append({
-#             "job_opening": job.designation,
-#             "department": job.department,
-#             "positions": positions,
-#             "candidates": candidate_count,
-#             "fill_percent": fill_percent,
-#             "over_capacity": over_capacity,
-#             "status": job.status,
-#             "priority": job.priority,
-#             "sla_status": sla_status
-#         })
-
-#     return result
 import frappe
 from frappe.utils import now_datetime, add_days
 
 @frappe.whitelist()
-def get_job_health(from_date=None, to_date=None, limit=10, offset=0):
+def get_job_health(from_date=None, to_date=None, limit=10, offset=0,department=None,
+priority=None,
+sla_status=None):
     limit = int(limit)
     offset = int(offset)
 
@@ -194,6 +107,24 @@ def get_job_health(from_date=None, to_date=None, limit=10, offset=0):
             "between",
             [from_date, add_days(to_date, 1)]
         ])
+    # Department
+    if department:
+        job_filters.append(["department", "=", department])
+
+    # Priority
+    if priority:
+        job_filters.append(["priority", "=", priority])
+
+    # SLA Status
+    if sla_status:
+        if sla_status == "Open":
+            job_filters.append(["status", "=", "Open"])
+        elif sla_status == "On Hold":
+            job_filters.append(["status", "=", "On Hold"])
+        elif sla_status == "Closed – Hired":
+            job_filters.append(["status", "=", "Closed – Hired"])
+        elif sla_status == "Closed – Cancelled":
+            job_filters.append(["status", "=", "Closed – Cancelled"])
 
     # ---------------- FETCH JOBS ----------------
     jobs = frappe.get_all(
@@ -243,29 +174,12 @@ def get_job_health(from_date=None, to_date=None, limit=10, offset=0):
 
         positions = int(job.number_of_positions or 0)
 
-        # ---------------- FILL % ----------------
-        fill_percent = round((candidate_count / positions) * 100, 1) if positions else 0
-
-        # ---------------- OVER CAPACITY ----------------
-        # OVER CAPACITY
-        if positions:
-            over_capacity = candidate_count > positions
-        else:
-            over_capacity = candidate_count > 0 
-
-        # ---------------- SLA STATUS ----------------
-        # sla_status = "On Track"
-        # if job.sla_due_date:
-        #     if job.sla_due_date < now:
-        #         sla_status = "Breached"
-        #     elif job.sla_due_date <= add_days(now, 3):
-        #         sla_status = "At Risk"
         CLOSED_STATUSES = ["Closed – Hired", "Closed – Cancelled"]
         # ---------------- SLA STATUS ----------------
         sla_status = "On Track"
 
         if job.status in CLOSED_STATUSES:
-            sla_status = "Closed"
+            sla_status = job.status
         else:
             if job.sla_due_date:
                     if job.sla_due_date < now:
@@ -288,8 +202,6 @@ def get_job_health(from_date=None, to_date=None, limit=10, offset=0):
             "department": job.department,
             "positions": positions,
             "candidates": candidate_count,
-            "fill_percent": fill_percent,
-            "over_capacity": over_capacity,
             "status": job.status,
             "priority": job.priority,
             "sla_status": sla_status,
@@ -328,46 +240,178 @@ def get_department_job_data(from_date=None, to_date=None):
 import frappe
 from frappe.utils import add_days
 
+# @frappe.whitelist()
+# def get_urgent_openings_jobs(from_date=None, to_date=None, limit=10, offset=0):
+#     """
+#     Returns urgent job openings (High / Critical priority) with pagination
+#     and optional date filtering. Safe to use for Jobs Dashboard.
+#     """
+#     filters = [
+#         ["priority", "in", ["High", "Critical"]]
+#     ]
+
+#     # Date filter
+#     if from_date and to_date:
+#         filters.append([
+#             "creation",
+#             "between",
+#             [from_date, add_days(to_date, 1)]
+#         ])
+
+#     # Fetch total count
+#     total = frappe.db.count("DKP_Job_Opening", filters)
+
+#     # Fetch paginated data
+#     data = frappe.get_all(
+#         "DKP_Job_Opening",
+#         fields=[
+#             "name",
+#             "designation",
+#             "company",
+#             "assign_recruiter",
+#             "priority",
+#             "number_of_positions",
+#             "status"
+#         ],
+#         filters=filters,
+#         order_by="modified desc",
+#         limit_start=offset,
+#         limit_page_length=limit
+#     )
+
+#     return {
+#         "total": total,
+#         "data": data
+#     }
+
+
+import frappe
+from frappe.utils import get_datetime, add_days
+
 @frappe.whitelist()
-def get_urgent_openings_jobs(from_date=None, to_date=None, limit=10, offset=0):
+def get_client_type_distribution(from_date=None, to_date=None):
     """
-    Returns urgent job openings (High / Critical priority) with pagination
-    and optional date filtering. Safe to use for Jobs Dashboard.
+    Returns counts of companies by client type for chart rendering.
+    Client types: Recruitment Only / Consulting Only / Recruitment + Consulting
     """
-    filters = [
-        ["priority", "in", ["High", "Critical"]]
-    ]
-
-    # Date filter
+    filters = []
     if from_date and to_date:
-        filters.append([
-            "creation",
-            "between",
-            [from_date, add_days(to_date, 1)]
-        ])
+        filters.append(["creation", "between", [get_datetime(from_date), get_datetime(add_days(to_date, 1))]])
 
-    # Fetch total count
-    total = frappe.db.count("DKP_Job_Opening", filters)
+    # Fetch counts grouped by client_type
+    data = frappe.db.sql("""
+        SELECT client_type, COUNT(name) as count
+        FROM `tabDKP_Company`
+        WHERE client_type IS NOT NULL
+        {date_filter}
+        GROUP BY client_type
+    """.format(
+        date_filter="AND creation BETWEEN %s AND %s" if from_date and to_date else ""
+    ),
+    (get_datetime(from_date), get_datetime(add_days(to_date, 1))) if from_date and to_date else (),
+    as_dict=1)
 
-    # Fetch paginated data
-    data = frappe.get_all(
-        "DKP_Job_Opening",
+    # Return in chart-friendly format
+    labels = [d["client_type"] for d in data]
+    values = [d["count"] for d in data]
+
+    chart = {
+        "data": {
+            "labels": labels,
+            "datasets": [{"name": "Clients", "values": values}]
+        },
+        "type": "bar"
+    }
+
+    return chart
+
+import frappe
+from frappe.utils import get_datetime, add_days
+
+@frappe.whitelist()
+def get_company_table(from_date=None, to_date=None, limit=20, offset=0,client_type=None,
+    industry=None,
+    client_status=None,):
+    """
+    Returns paginated company table data with summary columns.
+    Filters respect DKP_Company.creation.
+    """
+    limit = int(limit)
+    offset = int(offset)
+
+    filters = []
+    if from_date and to_date:
+        filters.append(["creation", "between", [get_datetime(from_date), get_datetime(add_days(to_date, 1))]])
+
+    # Apply additional filters
+    if client_type:
+        filters.append(["client_type", "=", client_type])
+    if industry:
+        filters.append(["industry", "=", industry])
+    if client_status:
+        filters.append(["client_status", "=", client_status])
+
+    # Fetch companies
+    companies = frappe.get_all(
+        "DKP_Company",
         fields=[
             "name",
-            "designation",
-            "company",
-            "assign_recruiter",
-            "priority",
-            "number_of_positions",
-            "status"
+            "company_name",
+            "client_type",
+            "industry",
+            "client_status",
+            "no_poach_flag",
+            "replacement_policy_days"
         ],
         filters=filters,
-        order_by="modified desc",
         limit_start=offset,
-        limit_page_length=limit
+        limit_page_length=limit,
+        order_by="creation desc"
     )
 
-    return {
-        "total": total,
-        "data": data
-    }
+    company_names = [c.name for c in companies]
+
+    # Fetch Open Jobs count per company
+    job_counts = {}
+    if company_names:
+        job_data = frappe.db.sql("""
+            SELECT company, COUNT(name) as count
+            FROM `tabDKP_Job_Opening`
+            WHERE status='Open' AND company IN %(companies)s
+            GROUP BY company
+        """, {"companies": tuple(company_names)}, as_dict=1)
+
+        job_counts = {d["company"]: d["count"] for d in job_data}
+
+    # Fetch Active Applications count per company
+    application_counts = {}
+    if company_names:
+        app_data = frappe.db.sql("""
+            SELECT jo.company, COUNT(ja.name) as count
+            FROM `tabDKP_Job_Application` ja
+            INNER JOIN `tabDKP_Job_Opening` jo
+                ON ja.job_opening_title = jo.name
+            WHERE jo.company IN %(companies)s
+            GROUP BY jo.company
+        """, {"companies": tuple(company_names)}, as_dict=1)
+
+        application_counts = {d["company"]: d["count"] for d in app_data}
+
+    # Build final table data
+    result = []
+    for c in companies:
+        result.append({
+            "company_name": c.name,
+            "client_type": c.client_type,
+            "industry": c.industry,
+            "client_status": c.client_status,
+            "open_jobs": job_counts.get(c.name, 0),
+            "active_applications": application_counts.get(c.name, 0),
+            "no_poach": c.no_poach_flag,
+            "replacement_days": c.replacement_policy_days
+        })
+
+    # Total count for pagination
+    total = frappe.db.count("DKP_Company", filters)
+
+    return {"total": total, "data": result}
