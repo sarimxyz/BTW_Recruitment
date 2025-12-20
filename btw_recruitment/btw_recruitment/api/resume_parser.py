@@ -152,6 +152,7 @@ Return JSON with these fields:
 - languages_known
 - date_of_birth (format: YYYY-MM-DD)
 - address
+- age(extract from date_of_birth)
 """
 
     response = client.messages.create(
@@ -192,6 +193,7 @@ Return JSON with these fields:
         "languages": "languages_known",
         "date_of_birth": "date_of_birth",
         "address": "address",
+        "age": "age",
     }
 
     for field, key in mapping.items():

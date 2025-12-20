@@ -18,6 +18,7 @@
   "total_experience_years",
   "address",
   "languages",
+  "age",
   "column_break_cjpe",
   "highest_qualification",
   "institute__university",
@@ -235,12 +236,6 @@
    "label": "Remarks"
   },
   {
-   "fieldname": "added_by",
-   "fieldtype": "Data",
-   "label": "Added By",
-   "options": "DKP_Recruiter"
-  },
-  {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
    "label": "Date Of Birth"
@@ -307,12 +302,22 @@
    "fieldname": "variableincentive",
    "fieldtype": "Int",
    "label": "Variable/Incentive"
+  },
+  {
+   "fieldname": "age",
+   "fieldtype": "Data",
+   "label": "Age"
+  },
+  {
+   "fieldname": "added_by",
+   "fieldtype": "Data",
+   "label": "Added By"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-16 18:32:41.796622",
+ "modified": "2025-12-20 16:02:23.259735",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",
