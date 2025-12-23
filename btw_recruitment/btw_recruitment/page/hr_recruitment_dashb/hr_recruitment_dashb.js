@@ -1,7 +1,10 @@
 let dashboard_filters = {
     from_date: null,
-    to_date: null
+    to_date: null,
+    stage: null 
 };
+const stageOptions = ["In Review", "Screening", "Interview", "Offered", "No Assigned Stage"];
+
 let applications_pagination = {
     limit: 10,
     offset: 0,
@@ -49,6 +52,30 @@ page.add_field({
         refresh_dashboard();
     }
 });
+
+// When Stage filter changes
+$(document).on("change", "#filter-stage", function() {
+    dashboard_filters.stage = $(this).val() || null;
+
+    // Reset pagination
+    applications_pagination.offset = 0;
+    applications_pagination.current_page = 1;
+
+    // Reload table
+    load_applications_table();
+});
+
+// Clear filters button
+$(document).on("click", "#clear-application-filters", function() {
+    $("#filter-stage").val("");
+    dashboard_filters.stage = null;
+
+    applications_pagination.offset = 0;
+    applications_pagination.current_page = 1;
+
+    load_applications_table();
+});
+
 
     // KPI container
        $(`
@@ -110,11 +137,31 @@ function load_kpis() {
 }
 function render_kpi_cards(data) {
     const cards = [
-        { label: "Total Candidates", value: data.total_candidates },
-        { label: "Blacklisted Candidates", value: data.blacklisted_candidates },
-        { label: "Active Applications", value: data.active_applications },
-        { label: "Jobs Offered", value: data.offers_released },
-        { label: "Total Job Openings", value: data.total_job_openings }
+        {
+            label: "Total Candidates",
+            value: data.total_candidates,
+            link: "/app/dkp_candidate"
+        },
+        {
+            label: "Blacklisted Candidates",
+            value: data.blacklisted_candidates,
+            link: "/app/dkp_candidate?blacklisted=1"
+        },
+        {
+            label: "Active Applications",
+            value: data.active_applications,
+            link: "/app/dkp_job_application"
+        },
+        {
+            label: "Jobs Offered",
+            value: data.offers_released,
+            link: "/app/dkp_job_application?stage=Offered"
+        },
+        {
+            label: "Total Job Openings",
+            value: data.total_job_openings,
+            link: "/app/dkp_job_opening"
+        }
     ];
 
     const $row = $("#hr-kpi-cards");
@@ -123,14 +170,34 @@ function render_kpi_cards(data) {
     cards.forEach(card => {
         $(`
             <div class="kpi-col">
-                <div class="card kpi-card">
-                    <div class="kpi-value">${card.value}</div>
-                    <div class="kpi-label">${card.label}</div>
-                </div>
+                <a href="${card.link}" class="kpi-link">
+                    <div class="card kpi-card">
+                        <div class="kpi-value">${card.value}</div>
+                        <div class="kpi-label">${card.label}</div>
+                    </div>
+                </a>
             </div>
         `).appendTo($row);
     });
+    // cards.forEach(card => {
+    // const $col = $(`
+    //     <div class="kpi-col">
+    //         <div class="card kpi-card">
+    //             <div class="kpi-value">${card.value}</div>
+    //             <div class="kpi-label">${card.label}</div>
+    //         </div>
+    //     </div>
+    // `);
+
+    // if (card.onClick) {
+    //     $col.find(".kpi-card").on("click", card.onClick);
+    // }
+
+//     $col.appendTo($row);
+// });
+
 }
+
 $("<style>")
     .prop("type", "text/css")
     .html(`
@@ -160,6 +227,23 @@ $("<style>")
             font-size: 13px;
             color: #6c7680;
         }
+            .kpi-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.kpi-card {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
     `)
     .appendTo("head");
 function render_stage_chart(chart_data) {
@@ -210,7 +294,7 @@ function render_department_pie_chart() {
         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_candidates_by_department",
         args: {
             from_date: dashboard_filters.from_date,
-            to_date: dashboard_filters.to_date
+            to_date: dashboard_filters.to_date,
         },
         callback: function(r) {
             if (!r.message || r.message.length === 0) {
@@ -252,7 +336,7 @@ function render_applications_table() {
     const table_container = $(`
         <div class="card" id="applications-table-wrapper" style="margin-top: 20px; padding: 16px; margin-bottom: 40px;">
             <h4>Active Applications</h4>
-
+            <div id="applications-table-filters"></div>
             <div id="applications-table-container">
                 <table class="table table-bordered">
                     <thead>
@@ -275,6 +359,25 @@ function render_applications_table() {
         </div>
     `);
 
+// Create filter row
+const filterRow = $(`
+    <div class="row mb-2 justify-content-end">
+        <div class="col-md-3">
+            <select class="form-control" id="filter-stage">
+                <option value="">All Stages</option>
+                ${stageOptions.map(stage => `<option value="${stage}">${stage}</option>`).join('')}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-sm btn-secondary" id="clear-application-filters">
+                Clear Filters
+            </button>
+        </div>
+    </div>
+`);
+
+
+    table_container.find("#applications-table-filters").append(filterRow);
     $section.append(table_container);
 
     load_applications_table();
@@ -288,7 +391,8 @@ function load_applications_table() {
             limit: applications_pagination.limit,
             offset: applications_pagination.offset,
             from_date: dashboard_filters.from_date,
-            to_date: dashboard_filters.to_date
+            to_date: dashboard_filters.to_date,
+            stage: dashboard_filters.stage 
         },
         callback: function(r) {
 			 console.log("APPLICATION API RESPONSE:", r);

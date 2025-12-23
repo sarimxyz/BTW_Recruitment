@@ -34,3 +34,4 @@ frappe.ui.form.on('DKP_Job_Opening', {
 
     }
 });
+
