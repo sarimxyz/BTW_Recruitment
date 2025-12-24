@@ -24,6 +24,8 @@ const priorityColors = {
     "Critical": "#D75A5A",     // matte coral red
     "High": "#E39A5F"          // warm amber pastel
 };
+let candidate_departments_loaded = false;
+
 frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
     const page = frappe.ui.make_app_page({
         parent: wrapper,
@@ -319,7 +321,7 @@ function load_kpis() {
             render_department_pie_chart();
             render_applications_table();
             render_urgent_openings_table();
-            // load_candidate_department_options();
+            load_candidate_department_options();
             // render_candidate_table();
             load_candidate_table()
         }
@@ -778,6 +780,7 @@ const candidate_table_filters = {
     search_text: null
 };
 function load_candidate_department_options() {
+     if (candidate_departments_loaded) return;
     frappe.call({
         method: "frappe.client.get_list",
         args: {
@@ -793,6 +796,7 @@ function load_candidate_department_options() {
                         `<option value="${d.name}">${d.name}</option>`
                     );
                 });
+                candidate_departments_loaded = true;
             }
         }
     });
