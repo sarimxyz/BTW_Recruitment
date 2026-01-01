@@ -32,28 +32,7 @@ frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
         title: 'HR Recruitment Dashboard',
         single_column: true
     });
-// Add Date Range filter
-// From Date
-// page.add_field({
-//     label: 'From Date',
-//     fieldtype: 'Date',
-//     fieldname: 'from_date',
-//     change() {
-//         dashboard_filters.from_date = this.value;
-//         refresh_dashboard();
-//     }
-// });
 
-// // To Date
-// page.add_field({
-//     label: 'To Date',
-//     fieldtype: 'Date',
-//     fieldname: 'to_date',
-//     change() {
-//         dashboard_filters.to_date = this.value;
-//         refresh_dashboard();
-//     }
-// });
 page.add_field({
     label: 'From Date',
     fieldtype: 'Date',
@@ -212,19 +191,6 @@ $(`
     </div>
 `).appendTo($("#candidates-filters"));
 
-    // KPI container
-//        $(`
-//     <div class="hr-kpi-section mt-3">
-//         <div class="row" id="hr-kpi-cards"></div>
-
-//         <div id="pipeline-section"></div>
-//         <div id="department-section"></div>
-//         <div id="urgent-openings-section"></div>
-
-//         <div id="applications-section"></div>
-//     </div>
-// `).appendTo(page.body);
-
 $(document).on("click", "#hr-dashboard-tabs .nav-link", function () {
     const tab = $(this).data("tab");
 
@@ -382,23 +348,6 @@ function render_kpi_cards(data) {
             </div>
         `).appendTo($row);
     });
-    // cards.forEach(card => {
-    // const $col = $(`
-    //     <div class="kpi-col">
-    //         <div class="card kpi-card">
-    //             <div class="kpi-value">${card.value}</div>
-    //             <div class="kpi-label">${card.label}</div>
-    //         </div>
-    //     </div>
-    // `);
-
-    // if (card.onClick) {
-    //     $col.find(".kpi-card").on("click", card.onClick);
-    // }
-
-//     $col.appendTo($row);
-// });
-
 }
 
 $("<style>")
