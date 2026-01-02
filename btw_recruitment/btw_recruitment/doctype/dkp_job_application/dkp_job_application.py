@@ -112,3 +112,29 @@ def get_candidate_status(candidate):
 
     return out
 
+@frappe.whitelist()
+def get_open_job_openings(company_name=None):
+    """
+    API endpoint to get job openings filtered by company and status
+    Called from JavaScript when company is selected
+    """
+    filters = {'status': 'Open'}
+    
+    if company_name:
+        filters['company'] = company_name
+    
+    open_jobs = frappe.get_list(
+        'DKP_Job_Opening',
+        filters=filters,
+        fields=['name', 'designation', 'company', 'status'],
+        order_by='name asc'
+    )
+    
+    # Format response for Select field
+    job_options = [{'value': job.name, 'label': f"{job.designation} - {job.company}"} for job in open_jobs]
+    
+    return {
+        'success': True,
+        'data': job_options,
+        'count': len(job_options)
+    }
