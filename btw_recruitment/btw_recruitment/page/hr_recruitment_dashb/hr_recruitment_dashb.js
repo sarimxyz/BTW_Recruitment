@@ -25,6 +25,23 @@ const priorityColors = {
     "High": "#E39A5F"          // warm amber pastel
 };
 let candidate_departments_loaded = false;
+let jobs_departments_loaded = false;
+let jobs_table_state = { limit: 20, offset: 0 };
+let jobs_table_filters = { designation: null, department: null, recruiter: null, status: null };
+let company_table_state = { limit: 20, offset: 0 };
+let company_filters = {
+    company_name: null,
+    client_type: null,
+    industry: null,
+    state: null,
+    city: null,
+    client_status: null
+};
+// $('a[data-tab="jobs"]').click(() => {
+//     console.log("Jobs tab clicked"); // should print
+//     load_jobs_department_options();
+//     load_jobs_table();
+// });
 
 frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
     const page = frappe.ui.make_app_page({
@@ -32,28 +49,7 @@ frappe.pages['hr-recruitment-dashb'].on_page_load = function(wrapper) {
         title: 'HR Recruitment Dashboard',
         single_column: true
     });
-// Add Date Range filter
-// From Date
-// page.add_field({
-//     label: 'From Date',
-//     fieldtype: 'Date',
-//     fieldname: 'from_date',
-//     change() {
-//         dashboard_filters.from_date = this.value;
-//         refresh_dashboard();
-//     }
-// });
-
-// // To Date
-// page.add_field({
-//     label: 'To Date',
-//     fieldtype: 'Date',
-//     fieldname: 'to_date',
-//     change() {
-//         dashboard_filters.to_date = this.value;
-//         refresh_dashboard();
-//     }
-// });
+$(frappe.render_template("hr_recruitment_dashb")).appendTo(page.body);
 page.add_field({
     label: 'From Date',
     fieldtype: 'Date',
@@ -103,6 +99,11 @@ function on_global_date_change() {
         candidate_table_state.offset = 0;
         load_candidate_table();
     }
+    if (active_tab === "jobs") {
+        jobs_table_state.offset = 0;
+        load_jobs_table();
+    }
+    if (active_tab === "company") { company_table_state.offset = 0; load_company_table(); }
 }
 
 // When Stage filter changes
@@ -128,97 +129,6 @@ $(document).on("click", "#clear-application-filters", function() {
     load_applications_table();
 });
 
-    const $tabs = $(`
-    <div class="mt-3">
-        <ul class="nav nav-tabs" id="hr-dashboard-tabs">
-            <li class="nav-item">
-                <a class="nav-link active" data-tab="overall">Overall</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-tab="candidates">Candidates</a>
-            </li>
-        </ul>
-
-        <div class="tab-content pt-3">
-            <div class="tab-pane active" id="tab-overall"></div>
-            <div class="tab-pane" id="tab-candidates"></div>
-        </div>
-    </div>
-`);
-$tabs.appendTo(page.body);
-$(`
-    <div class="hr-kpi-section">
-        <div class="row" id="hr-kpi-cards"></div>
-
-        <div id="pipeline-section"></div>
-        <div id="department-section"></div>
-        <div id="urgent-openings-section"></div>
-
-        <div id="applications-section"></div>
-    </div>
-`).appendTo($("#tab-overall"));
-$(`
-    <div id="candidates-filters" class="mb-2"></div>
-    <div id="candidates-table"></div>
-`).appendTo($("#tab-candidates"));
-$(`
-    <div class="row g-2 align-items-end">
-        <div class="col-md-3">
-            <label>Search Candidate / Skills</label>
-            <input type="text" class="form-control" id="candidate-search"
-                placeholder="Name, skills, certifications">
-        </div>
-
-        <div class="col-md-2">
-            <label>Department</label>
-            <select class="form-control" id="filter-department">
-                <option value="">All</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <label>Designation</label>
-            <input type="text" class="form-control" id="filter-designation"
-                placeholder="e.g. React Developer">
-        </div>
-
-        <div class="col-md-1">
-            <label>Min Exp</label>
-            <input type="number" class="form-control" id="filter-min-exp">
-        </div>
-
-        <div class="col-md-1">
-            <label>Max Exp</label>
-            <input type="number" class="form-control" id="filter-max-exp">
-        </div>
-
-        <div class="col-md-2">
-            <button class="btn btn-primary w-100" id="apply-candidate-filters">
-                Apply
-            </button>
-        </div>
-
-        <div class="col-md-1">
-            <button class="btn btn-secondary w-100" id="clear-candidate-filters">
-                Clear
-            </button>
-        </div>
-    </div>
-`).appendTo($("#candidates-filters"));
-
-    // KPI container
-//        $(`
-//     <div class="hr-kpi-section mt-3">
-//         <div class="row" id="hr-kpi-cards"></div>
-
-//         <div id="pipeline-section"></div>
-//         <div id="department-section"></div>
-//         <div id="urgent-openings-section"></div>
-
-//         <div id="applications-section"></div>
-//     </div>
-// `).appendTo(page.body);
-
 $(document).on("click", "#hr-dashboard-tabs .nav-link", function () {
     const tab = $(this).data("tab");
 
@@ -235,8 +145,18 @@ $(document).on("click", "#hr-dashboard-tabs .nav-link", function () {
     if (tab === "candidates") {
         load_candidates_tab();
     }
+    if (tab === "jobs") {   
+        load_jobs_department_options();
+        load_jobs_table();
+    }
+    if (tab === "company") {
+        load_company_table();
+    }
 });
 $(document).on("click", "#apply-candidate-filters", function () {
+    candidate_table_filters.candidate_name_search =
+    $("#candidate-name-search").val() || null;
+
     candidate_table_filters.search_text =
         $("#candidate-search").val() || null;
 
@@ -256,12 +176,14 @@ $(document).on("click", "#apply-candidate-filters", function () {
     load_candidate_table();
 });
 $(document).on("click", "#clear-candidate-filters", function () {
+    $("#candidate-name-search").val("");
     $("#candidate-search").val("");
     $("#filter-department").val("");
     $("#filter-designation").val("");
     $("#filter-min-exp").val("");
     $("#filter-max-exp").val("");
 
+    candidate_table_filters.candidate_name_search = null;
     candidate_table_filters.search_text = null;
     candidate_table_filters.department = null;
     candidate_table_filters.current_designation = null;
@@ -271,8 +193,69 @@ $(document).on("click", "#clear-candidate-filters", function () {
     candidate_table_state.offset = 0;
     load_candidate_table();
 });
+$(document).on("click", 'a[data-tab="jobs"]', () => {
+    console.log("Jobs tab clicked");
+    load_jobs_department_options();
+    load_jobs_table();
+});
 
+$("#apply-job-filters").click(() => {
+    jobs_table_filters.designation = $("#filter-job-title").val() || null; // <-- map to designation
+    jobs_table_filters.department = $("#filter-job-department").val() || null;
+    jobs_table_filters.recruiter = $("#filter-job-recruiter").val() || null;
+    jobs_table_filters.status = $("#filter-job-status").val() || null;
 
+    jobs_table_state.offset = 0;
+    load_jobs_table();
+});
+
+$("#clear-job-filters").click(() => {
+    $("#filter-job-title").val("");
+    $("#filter-job-department").val("");
+    $("#filter-job-recruiter").val("");
+    $("#filter-job-status").val("");
+
+    jobs_table_filters.designation = null; // <-- correct
+    jobs_table_filters.department = null;
+    jobs_table_filters.recruiter = null;
+    jobs_table_filters.status = null;
+
+    jobs_table_state.offset = 0;
+    load_jobs_table();
+});
+$(document).on("click", 'a[data-tab="company"]', function () {
+    console.log("Company tab opened");
+    load_company_table();
+});
+$("#apply-company-filters").click(() => {
+    company_filters.company_name = $("#filter-company-name").val() || null;
+    company_filters.client_type = $("#filter-company-type").val() || null;
+    company_filters.industry = $("#filter-company-industry").val() || null;
+    company_filters.state = $("#filter-company-state").val() || null;
+    company_filters.city = $("#filter-company-city").val() || null;
+    company_filters.client_status = $("#filter-company-status").val() || null;
+
+    company_table_state.offset = 0;
+    load_company_table();
+});
+
+// Clear filters
+$("#clear-company-filters").click(() => {
+    $("#filter-company-name").val("");
+    $("#filter-company-type").val("");
+    $("#filter-company-industry").val("");
+    $("#filter-company-state").val("");
+    $("#filter-company-city").val("");
+    $("#filter-company-status").val("");
+
+    company_filters = {
+        company_name: null, client_type: null, industry: null,
+        state: null, city: null, client_status: null
+    };
+
+    company_table_state.offset = 0;
+    load_company_table();
+});
     load_kpis();
 };
 function refresh_dashboard() {
@@ -296,6 +279,30 @@ function load_candidates_tab() {
     load_candidate_department_options();
     load_candidate_table();
 }
+function load_jobs_department_options() {
+    if (jobs_departments_loaded) return;
+
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: { 
+            doctype: "DKP_Department",
+            fields: ["name"],
+            limit_page_length: 1000
+        },
+        callback(r) {
+            if (r.message) {
+                const $dept = $("#filter-job-department");
+                $dept.empty().append('<option value="">All</option>');
+                r.message.forEach(d => {
+                    $dept.append(`<option value="${d.name}">${d.name}</option>`);
+                });
+                jobs_departments_loaded = true;
+            }
+        }
+    });
+}
+
+
 
 function load_kpis() {
     frappe.call({
@@ -321,9 +328,10 @@ function load_kpis() {
             render_department_pie_chart();
             render_applications_table();
             render_urgent_openings_table();
-            load_candidate_department_options();
+            // load_candidate_department_options();
             // render_candidate_table();
-            load_candidate_table()
+            // load_candidate_table()
+            // load_jobs_table()
         }
     });
 }
@@ -371,73 +379,7 @@ function render_kpi_cards(data) {
             </div>
         `).appendTo($row);
     });
-    // cards.forEach(card => {
-    // const $col = $(`
-    //     <div class="kpi-col">
-    //         <div class="card kpi-card">
-    //             <div class="kpi-value">${card.value}</div>
-    //             <div class="kpi-label">${card.label}</div>
-    //         </div>
-    //     </div>
-    // `);
-
-    // if (card.onClick) {
-    //     $col.find(".kpi-card").on("click", card.onClick);
-    // }
-
-//     $col.appendTo($row);
-// });
-
 }
-
-$("<style>")
-    .prop("type", "text/css")
-    .html(`
-        .kpi-card {
-            padding: 10px;
-            text-align: center;
-            border-radius: 8px;
-            background: #ffffff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            height: 100%;
-        }
-        #hr-kpi-cards {
-            display: flex;
-            gap: 12px;
-            padding: 0 16px;
-        }
-        .kpi-col {
-            flex: 1;
-
-        }
-        .kpi-value {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .kpi-label {
-            margin-top: 6px;
-            font-size: 13px;
-            color: #6c7680;
-        }
-            .kpi-link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    height: 100%;
-}
-
-.kpi-card {
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-}
-
-    `)
-    .appendTo("head");
 function render_stage_chart(chart_data) {
     const $section = $("#pipeline-section");
     $section.empty();
@@ -814,7 +756,8 @@ function load_candidate_table() {
             current_designation: candidate_table_filters.current_designation,
             min_experience: candidate_table_filters.min_experience,
             max_experience: candidate_table_filters.max_experience,
-            search_text: candidate_table_filters.search_text
+            search_text: candidate_table_filters.search_text,
+            candidate_name_search: candidate_table_filters.candidate_name_search
         },
         callback(r) {
             if (r.message) {
@@ -836,6 +779,7 @@ function render_candidate_table(data, total) {
                     <th>Department</th>
                     <th>Designation</th>
                     <th>Experience (Yrs)</th>
+                    <th>Skills(tags)</th>
                     <th>Primary Skill</th>
                     <th>Secondary Skill</th>
                     <th>Certifications</th>
@@ -866,6 +810,7 @@ function render_candidate_table(data, total) {
                     <td>${d.department || "-"}</td>
                     <td>${d.current_designation || "-"}</td>
                     <td>${d.total_experience_years ?? "-"}</td>
+                    <td>${d.skills_tags || "-"}</td>
                     <td>${d.primary_skill_set || "-"}</td>
                     <td>${d.secondary_skill_set || "-"}</td>
                     <td>${d.key_certifications || "-"}</td>
@@ -908,3 +853,189 @@ function render_candidate_table(data, total) {
 }
 
 
+
+function load_jobs_table() {
+    console.log("Loading Jobs Table...", jobs_table_filters, jobs_table_state);
+
+    frappe.call({
+        method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_jobs_table",
+        args: {
+            from_date: dashboard_filters.from_date,
+            to_date: dashboard_filters.to_date,
+            limit: jobs_table_state.limit,
+            offset: jobs_table_state.offset,
+            designation: jobs_table_filters.designation,
+            department: jobs_table_filters.department,
+            recruiter: jobs_table_filters.recruiter,
+            status: jobs_table_filters.status
+        },
+        callback(r) {
+            console.log("Jobs API Response:", r);
+
+            if (r.message) {
+                render_jobs_table(r.message.data, r.message.total);
+            } else {
+                render_jobs_table([], 0);
+            }
+        }
+    });
+}
+
+function render_jobs_table(data, total) {
+    console.log("render_jobs_table called with data:", data);
+    const $container = $("#jobs-table");
+    $container.empty();
+
+    const table = $(`
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Designation</th>
+                    <th>Company</th>
+                    <th>Department</th>
+                    <th>Recruiter</th>
+                    <th>Status</th>
+                    <th>No. of Positions</th>
+                    <th>Created On</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    `);
+
+    if (!data || !data.length) {
+        table.find("tbody").append(`
+            <tr><td colspan="7" class="text-center text-muted">No job openings found</td></tr>
+        `);
+    } else {
+        data.forEach(d => {
+            table.find("tbody").append(`
+                <tr>
+                    <td><a href="/app/dkp_job_opening/${d.name}">${d.designation || "-"}</a></td>
+                    <td>${d.company || "-"}</td>
+                    <td>${d.department || "-"}</td>
+                    <td>${d.recruiter || "-"}</td>
+                    <td>${d.status || "-"}</td>
+                    <td>${d.number_of_positions || "-"}</td>
+                    <td>${frappe.datetime.str_to_user(d.creation)}</td>
+                </tr>
+            `);
+        });
+    }
+
+    $container.append(table);
+
+    // Pagination
+    const total_pages = Math.ceil(total / jobs_table_state.limit);
+    const current_page = Math.floor(jobs_table_state.offset / jobs_table_state.limit) + 1;
+
+    const pagination = $(`
+        <div class="mt-2 d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-primary" id="jobs-prev">Prev</button>
+            <span>Page ${current_page} of ${total_pages || 1}</span>
+            <button class="btn btn-sm btn-primary" id="jobs-next">Next</button>
+        </div>
+    `);
+
+    $container.append(pagination);
+
+    $("#jobs-prev")
+        .prop("disabled", jobs_table_state.offset === 0)
+        .click(() => {
+            jobs_table_state.offset -= jobs_table_state.limit;
+            load_jobs_table();
+        });
+
+    $("#jobs-next")
+        .prop("disabled", current_page >= total_pages)
+        .click(() => {
+            jobs_table_state.offset += jobs_table_state.limit;
+            load_jobs_table();
+        });
+}
+
+
+function load_company_table() {
+    console.log("Loading Company Table...", company_filters, company_table_state);
+
+    frappe.call({
+        method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_companies",  
+        args: {
+            from_date: dashboard_filters.from_date,
+            to_date: dashboard_filters.to_date,
+            limit_page_length: company_table_state.limit,
+            limit_start: company_table_state.offset,
+            ...company_filters
+        },
+        callback(r) {
+            render_company_table(r.message.data, r.message.total);
+        }
+    });
+}
+
+// Render Table + Pagination
+function render_company_table(data) {
+    const $container = $("#company-table");
+    $container.empty();
+
+    const table = $(`
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Client Type</th>
+                    <th>Industry</th>
+                    <th>Location</th>
+                    <th>Billing Email</th>
+                    <th>Billing Phone</th>
+                    <th>Status</th>
+                    <th>Fee Type</th>
+                    <th>Replacement</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    `);
+
+    if (!data.length) {
+        table.find("tbody").append(`
+            <tr><td colspan="9" class="text-center text-muted">No companies found</td></tr>
+        `);
+    } else {
+        data.forEach(d => {
+            table.find("tbody").append(`
+                <tr>
+                    <td><a href="/app/dkp_company/${d.name}">${d.company_name}</a></td>
+                    <td>${d.client_type || "-"}</td>
+                    <td>${d.industry || "-"}</td>
+                    <td>${d.city || "-"}, ${d.state || "-"}</td>
+                    <td>${d.billing_mail || "-"}</td>
+                    <td>${d.billing_number || "-"}</td>
+                    <td>${d.client_status || "-"}</td>
+                    <td>${d.standard_fee_type || "-"}</td>
+                    <td>${d.replacement_policy_days || "-"}</td>
+                </tr>
+            `);
+        });
+    }
+
+    $container.append(table);
+
+    // Pagination like jobs
+    const pagination = $(`
+        <div class="mt-2 d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-primary" id="company-prev">Prev</button>
+            <button class="btn btn-sm btn-primary" id="company-next">Next</button>
+        </div>
+    `);
+
+    $("#company-prev")
+        .prop("disabled", company_table_state.offset === 0)
+        .click(() => { company_table_state.offset -= company_table_state.limit; load_company_table(); });
+
+    $("#company-next")
+        .prop("disabled", data.length < company_table_state.limit)
+        .click(() => { company_table_state.offset += company_table_state.limit; load_company_table(); });
+
+    $container.append(pagination);
+}

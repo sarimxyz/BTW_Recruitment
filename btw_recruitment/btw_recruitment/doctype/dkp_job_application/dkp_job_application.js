@@ -61,3 +61,59 @@ frappe.ui.form.on("DKP_JobApplication_Child", {
         });
     }
 });
+frappe.ui.form.on('DKP_Job_Application', {
+    refresh: function(frm) {
+        // Load job openings when form loads
+        if (frm.doc.company_name) {
+            load_job_openings(frm);
+        }
+    },
+
+    company_name: function(frm) {
+        // When company is selected, clear and reload job openings
+        frm.set_value('job_opening_title', '');
+        load_job_openings(frm);
+    }
+});
+
+function load_job_openings(frm) {
+    if (!frm.doc.company_name) {
+        frappe.msgprint('Please select a company first');
+        return;
+    }
+
+    // Show loading indicator
+    frm.set_df_property('job_opening_title', 'description', 'Loading job openings...');
+
+    // Call Python API
+    frappe.call({
+        method: 'btw_recruitment.btw_recruitment.doctype.dkp_job_application.dkp_job_application.get_open_job_openings',
+        args: {
+            company_name: frm.doc.company_name
+        },
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                const job_options = r.message.data;
+
+                if (job_options.length === 0) {
+                    frm.set_df_property('job_opening_title', 'description', 'No open positions available');
+                    return;
+                }
+
+                // Create options string for Select field
+                let options = job_options.map(job => job.label).join('\n');
+
+                // Update the field with new options
+                frm.set_df_property('job_opening_title', 'options', options);
+                frm.set_df_property('job_opening_title', 'description', `Found ${job_options.length} open position(s)`);
+
+                // Refresh the field
+                frm.refresh_field('job_opening_title');
+
+            } else {
+                frappe.msgprint('Error loading job openings');
+                frm.set_df_property('job_opening_title', 'description', 'Error loading positions');
+            }
+        }
+    });
+}
