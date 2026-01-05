@@ -9,6 +9,7 @@
   "job_opening_title",
   "joining_date",
   "designation",
+  "show_candidate_suggestions",
   "section_break_rqlz",
   "table_akka"
  ],
@@ -43,12 +44,17 @@
    "fieldname": "designation",
    "fieldtype": "Data",
    "label": "Designation"
+  },
+  {
+   "fieldname": "show_candidate_suggestions",
+   "fieldtype": "Button",
+   "label": "Show Candidate Suggestions"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-02 13:49:43.152793",
+ "modified": "2026-01-05 12:16:35.017781",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Application",
