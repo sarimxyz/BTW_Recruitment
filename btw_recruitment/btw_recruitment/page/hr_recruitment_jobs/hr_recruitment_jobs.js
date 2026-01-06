@@ -508,7 +508,6 @@ function render_job_health_table(data, total) {
             <thead>
                 <tr>
                     <th>Job Opening</th>
-					<th>Job Applications</th>
                     <th>Department</th>
 					<th>Designation</th>
                     <th>Positions</th>
@@ -524,7 +523,6 @@ function render_job_health_table(data, total) {
         $(`
             <tr>
                 <td><a href="/app/dkp_job_opening/${d.job_opening}">${d.job_opening || '-'}</a></td>
-				<td><a href="/app/dkp_job_application/${d.job_applications.join(", ")}">${d.job_applications.join(", ") || '-'}</a></td>
                 <td>${d.department || '-'}</td>
 				<td>${d.designation || '-'}</td>
                 <td>${d.positions}</td>

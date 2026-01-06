@@ -166,9 +166,10 @@ $(document).on("click", "#hr-dashboard-tabs .nav-link", function () {
         load_company_table();
     }
 });
-$(document).on("click", "#apply-candidate-filters", function () {
+// Helper function to apply candidate filters
+function apply_candidate_filters() {
     candidate_table_filters.candidate_name_search =
-    $("#candidate-name-search").val() || null;
+        $("#candidate-name-search").val() || null;
 
     candidate_table_filters.search_text =
         $("#candidate-search").val() || null;
@@ -187,6 +188,24 @@ $(document).on("click", "#apply-candidate-filters", function () {
 
     candidate_table_state.offset = 0;
     load_candidate_table();
+}
+
+$(document).on("click", "#apply-candidate-filters", function () {
+    apply_candidate_filters();
+});
+
+// Live filtering for candidate filters
+$(document).on("change", "#filter-department, #filter-designation", function() {
+    apply_candidate_filters();
+});
+
+// Debounced live filtering for text inputs
+let candidate_filter_timeout;
+$(document).on("keyup", "#candidate-name-search, #candidate-search, #filter-min-exp, #filter-max-exp", function() {
+    clearTimeout(candidate_filter_timeout);
+    candidate_filter_timeout = setTimeout(function() {
+        apply_candidate_filters();
+    }, 500); // Wait 500ms after user stops typing
 });
 $(document).on("click", "#clear-candidate-filters", function () {
     $("#candidate-name-search").val("");
@@ -212,14 +231,33 @@ $(document).on("click", 'a[data-tab="jobs"]', () => {
     load_jobs_table();
 });
 
-$("#apply-job-filters").click(() => {
-    jobs_table_filters.designation = $("#filter-job-title").val() || null; // <-- map to designation
+// Helper function to apply job filters
+function apply_job_filters() {
+    jobs_table_filters.designation = $("#filter-job-title").val() || null;
     jobs_table_filters.department = $("#filter-job-department").val() || null;
     jobs_table_filters.recruiter = $("#filter-job-recruiter").val() || null;
     jobs_table_filters.status = $("#filter-job-status").val() || null;
 
     jobs_table_state.offset = 0;
     load_jobs_table();
+}
+
+$("#apply-job-filters").click(() => {
+    apply_job_filters();
+});
+
+// Live filtering for job filters
+$(document).on("change", "#filter-job-department, #filter-job-status", function() {
+    apply_job_filters();
+});
+
+// Debounced live filtering for text inputs
+let job_filter_timeout;
+$(document).on("keyup", "#filter-job-title, #filter-job-recruiter", function() {
+    clearTimeout(job_filter_timeout);
+    job_filter_timeout = setTimeout(function() {
+        apply_job_filters();
+    }, 500);
 });
 
 $("#clear-job-filters").click(() => {
@@ -243,13 +281,27 @@ $(document).on("click", 'a[data-tab="job-applications"]', () => {
     load_job_applications_table();
 });
 
-$("#apply-application-filters").click(() => {
+// Helper function to apply job application filters
+function apply_job_application_filters() {
     job_applications_table_filters.company_name = $("#filter-application-company").val() || null;
     job_applications_table_filters.job_opening_title = $("#filter-application-opening").val() || null;
     job_applications_table_filters.designation = $("#filter-application-designation").val() || null;
 
     job_applications_table_state.offset = 0;
     load_job_applications_table();
+}
+
+$("#apply-application-filters").click(() => {
+    apply_job_application_filters();
+});
+
+// Live filtering for job application filters (all are text inputs, so use debounced keyup)
+let job_application_filter_timeout;
+$(document).on("keyup", "#filter-application-company, #filter-application-opening, #filter-application-designation", function() {
+    clearTimeout(job_application_filter_timeout);
+    job_application_filter_timeout = setTimeout(function() {
+        apply_job_application_filters();
+    }, 500);
 });
 
 $("#clear-application-filters").click(() => {
@@ -269,7 +321,8 @@ $(document).on("click", 'a[data-tab="company"]', function () {
     console.log("Company tab opened");
     load_company_table();
 });
-$("#apply-company-filters").click(() => {
+// Helper function to apply company filters
+function apply_company_filters() {
     company_filters.company_name = $("#filter-company-name").val() || null;
     company_filters.client_type = $("#filter-company-type").val() || null;
     company_filters.industry = $("#filter-company-industry").val() || null;
@@ -279,6 +332,24 @@ $("#apply-company-filters").click(() => {
 
     company_table_state.offset = 0;
     load_company_table();
+}
+
+$("#apply-company-filters").click(() => {
+    apply_company_filters();
+});
+
+// Live filtering for company filters
+$(document).on("change", "#filter-company-type, #filter-company-status", function() {
+    apply_company_filters();
+});
+
+// Debounced live filtering for text inputs
+let company_filter_timeout;
+$(document).on("keyup", "#filter-company-name, #filter-company-industry, #filter-company-state, #filter-company-city", function() {
+    clearTimeout(company_filter_timeout);
+    company_filter_timeout = setTimeout(function() {
+        apply_company_filters();
+    }, 500);
 });
 
 // Clear filters
@@ -390,16 +461,6 @@ function render_kpi_cards(data) {
             link: "/app/dkp_candidate?blacklisted=1"
         },
         {
-            label: "Active Applications",
-            value: data.active_applications,
-            link: "/app/dkp_job_application"
-        },
-        {
-            label: "Jobs Offered",
-            value: data.offers_released,
-            link: "/app/dkp_job_application?stage=Offered"
-        },
-        {
             label: "Total Job Openings",
             value: data.total_job_openings,
             link: "/app/dkp_job_opening"
@@ -505,167 +566,167 @@ function render_department_pie_chart() {
     });
 }
 
-function render_applications_table() {
-    const $section = $("#applications-section");
-    $section.empty();
+// function render_applications_table() {
+//     const $section = $("#applications-section");
+//     $section.empty();
 
-    const table_container = $(`
-        <div class="card" id="applications-table-wrapper" style="margin-top: 20px; padding: 16px; margin-bottom: 40px;">
-            <h4>Active Applications</h4>
-            <div id="applications-table-filters"></div>
-            <div id="applications-table-container">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Candidate</th>
-                            <th>Stage</th>
-                            <th>Interview Date</th>
-                            <th>Application</th>
-                        </tr>
-                    </thead>
-                    <tbody id="applications-table-body">
-                        <tr>
-                            <td colspan="4" class="text-muted text-center">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+//     const table_container = $(`
+//         <div class="card" id="applications-table-wrapper" style="margin-top: 20px; padding: 16px; margin-bottom: 40px;">
+//             <h4>Active Applications</h4>
+//             <div id="applications-table-filters"></div>
+//             <div id="applications-table-container">
+//                 <table class="table table-bordered">
+//                     <thead>
+//                         <tr>
+//                             <th>Candidate</th>
+//                             <th>Stage</th>
+//                             <th>Interview Date</th>
+//                             <th>Application</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody id="applications-table-body">
+//                         <tr>
+//                             <td colspan="4" class="text-muted text-center">Loading...</td>
+//                         </tr>
+//                     </tbody>
+//                 </table>
+//             </div>
 
-            <div id="applications-pagination-container" class="mt-2"></div>
-        </div>
-    `);
+//             <div id="applications-pagination-container" class="mt-2"></div>
+//         </div>
+//     `);
 
 // Create filter row
-const filterRow = $(`
-    <div class="row mb-2 justify-content-end">
-        <div class="col-md-3">
-            <select class="form-control" id="filter-stage">
-                <option value="">All Stages</option>
-                ${stageOptions.map(stage => `<option value="${stage}">${stage}</option>`).join('')}
-            </select>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-sm btn-secondary" id="clear-application-filters">
-                Clear Filters
-            </button>
-        </div>
-    </div>
-`);
+// const filterRow = $(`
+//     <div class="row mb-2 justify-content-end">
+//         <div class="col-md-3">
+//             <select class="form-control" id="filter-stage">
+//                 <option value="">All Stages</option>
+//                 ${stageOptions.map(stage => `<option value="${stage}">${stage}</option>`).join('')}
+//             </select>
+//         </div>
+//         <div class="col-md-3 d-flex align-items-end">
+//             <button class="btn btn-sm btn-secondary" id="clear-application-filters">
+//                 Clear Filters
+//             </button>
+//         </div>
+//     </div>
+// `);
 
 
-    table_container.find("#applications-table-filters").append(filterRow);
-    $section.append(table_container);
+//     table_container.find("#applications-table-filters").append(filterRow);
+//     $section.append(table_container);
 
-    load_applications_table();
-}
+//     load_applications_table();
+// }
 
 
-function load_applications_table() {
-    frappe.call({
-        method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_active_applications",
-		args: {
-            limit: applications_pagination.limit,
-            offset: applications_pagination.offset,
-            from_date: dashboard_filters.from_date,
-            to_date: dashboard_filters.to_date,
-            stage: dashboard_filters.stage 
-        },
-        callback: function(r) {
-			 console.log("APPLICATION API RESPONSE:", r);
-            console.log("r.message:", r.message);
-            console.log("r.message.data:", r.message?.data);
-            const tbody = $("#applications-table-body");
-            tbody.empty();
+// function load_applications_table() {
+//     frappe.call({
+//         method: "btw_recruitment.btw_recruitment.api.hr_dashboard.get_active_applications",
+// 		args: {
+//             limit: applications_pagination.limit,
+//             offset: applications_pagination.offset,
+//             from_date: dashboard_filters.from_date,
+//             to_date: dashboard_filters.to_date,
+//             stage: dashboard_filters.stage 
+//         },
+//         callback: function(r) {
+// 			 console.log("APPLICATION API RESPONSE:", r);
+//             console.log("r.message:", r.message);
+//             console.log("r.message.data:", r.message?.data);
+//             const tbody = $("#applications-table-body");
+//             tbody.empty();
 
-            if (!r.message || !r.message.data || r.message.data.length === 0) {
-    tbody.html(`
-        <tr>
-            <td colspan="4" class="text-muted text-center">
-                No active applications
-            </td>
-        </tr>
-    `);
+//             if (!r.message || !r.message.data || r.message.data.length === 0) {
+//     tbody.html(`
+//         <tr>
+//             <td colspan="4" class="text-muted text-center">
+//                 No active applications
+//             </td>
+//         </tr>
+//     `);
 
-    $("#applications-pagination-container").empty();
+//     $("#applications-pagination-container").empty();
 
-    return;
-}
+//     return;
+// }
 
-			applications_pagination.total = r.message.total;
-            r.message.data.forEach((row, index) => {
-                const serial = applications_pagination.offset + index + 1;
-                const stageText = row.stage?.trim() || "No Assigned Stage";
-                const stageColor = stageColors[row.stage?.trim()] || "#cccccc";
+// 			applications_pagination.total = r.message.total;
+//             r.message.data.forEach((row, index) => {
+//                 const serial = applications_pagination.offset + index + 1;
+//                 const stageText = row.stage?.trim() || "No Assigned Stage";
+//                 const stageColor = stageColors[row.stage?.trim()] || "#cccccc";
                 
-                tbody.append(`
-                    <tr>
-                        <td>${serial}. 
-                            <a href="/app/dkp_candidate/${row.candidate_name}">
-                                ${row.candidate_name}
-                            </a>
-                        </td>
-                        <td>
-                            <span style="
-                                display: inline-block;
-                                padding: 4px 8px;
-                                border-radius: 12px;
-                                background-color: ${stageColor};
-                                color: #fff;
-                                font-weight: 500;
-                            ">
-                                ${stageText}
-                            </span>
-                        </td>
-                        <td>${row.interview_date || "-"}</td>
-                        <td>
-                            <a href="/app/dkp_job_application/${row.job_application}">
-                                ${row.job_application}
-                            </a>
-                        </td>
-                    </tr>
-                `);
-            });
-			render_applications_pagination(r.message.data.length);
-        }
-    });
-}
+//                 tbody.append(`
+//                     <tr>
+//                         <td>${serial}. 
+//                             <a href="/app/dkp_candidate/${row.candidate_name}">
+//                                 ${row.candidate_name}
+//                             </a>
+//                         </td>
+//                         <td>
+//                             <span style="
+//                                 display: inline-block;
+//                                 padding: 4px 8px;
+//                                 border-radius: 12px;
+//                                 background-color: ${stageColor};
+//                                 color: #fff;
+//                                 font-weight: 500;
+//                             ">
+//                                 ${stageText}
+//                             </span>
+//                         </td>
+//                         <td>${row.interview_date || "-"}</td>
+//                         <td>
+//                             <a href="/app/dkp_job_application/${row.job_application}">
+//                                 ${row.job_application}
+//                             </a>
+//                         </td>
+//                     </tr>
+//                 `);
+//             });
+// 			render_applications_pagination(r.message.data.length);
+//         }
+//     });
+// }
 
-function render_applications_pagination(currentCount) {
-    $("#applications-pagination").remove();
+// function render_applications_pagination(currentCount) {
+//     $("#applications-pagination").remove();
 
-    const totalPages = Math.ceil(applications_pagination.total / applications_pagination.limit);
-    const container = $(`
-        <div id="applications-pagination" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <div id="page-info">Page ${applications_pagination.current_page} of ${totalPages}</div>
-            <div>
-                <button id="prev-page" class="btn btn-sm btn-outline-primary">Previous</button>
-                <button id="next-page" class="btn btn-sm btn-outline-primary">Next</button>
-            </div>
-        </div>
-    `);
+//     const totalPages = Math.ceil(applications_pagination.total / applications_pagination.limit);
+//     const container = $(`
+//         <div id="applications-pagination" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+//             <div id="page-info">Page ${applications_pagination.current_page} of ${totalPages}</div>
+//             <div>
+//                 <button id="prev-page" class="btn btn-sm btn-outline-primary">Previous</button>
+//                 <button id="next-page" class="btn btn-sm btn-outline-primary">Next</button>
+//             </div>
+//         </div>
+//     `);
 
-    $("#applications-pagination-container").append(container);
+//     $("#applications-pagination-container").append(container);
 
 
-    if (applications_pagination.current_page === 1) $("#prev-page").attr("disabled", true);
-    if (applications_pagination.current_page === totalPages) $("#next-page").attr("disabled", true);
+//     if (applications_pagination.current_page === 1) $("#prev-page").attr("disabled", true);
+//     if (applications_pagination.current_page === totalPages) $("#next-page").attr("disabled", true);
 
-    $("#prev-page").click(() => {
-        if (applications_pagination.current_page > 1) {
-            applications_pagination.current_page--;
-            applications_pagination.offset -= applications_pagination.limit;
-            load_applications_table();
-        }
-    });
+//     $("#prev-page").click(() => {
+//         if (applications_pagination.current_page > 1) {
+//             applications_pagination.current_page--;
+//             applications_pagination.offset -= applications_pagination.limit;
+//             load_applications_table();
+//         }
+//     });
 
-    $("#next-page").click(() => {
-        if (applications_pagination.current_page < totalPages) {
-            applications_pagination.current_page++;
-            applications_pagination.offset += applications_pagination.limit;
-            load_applications_table();
-        }
-    });
-}
+//     $("#next-page").click(() => {
+//         if (applications_pagination.current_page < totalPages) {
+//             applications_pagination.current_page++;
+//             applications_pagination.offset += applications_pagination.limit;
+//             load_applications_table();
+//         }
+//     });
+// }
 function render_urgent_openings_table(callback) {
     const $section = $("#urgent-openings-section");
     $section.empty();
@@ -757,6 +818,7 @@ const candidate_table_state = {
 };
 
 const candidate_table_filters = {
+    candidate_name_search: null,
     department: null,
     current_designation: null,
     min_experience: null,
