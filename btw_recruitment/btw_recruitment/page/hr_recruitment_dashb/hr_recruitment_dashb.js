@@ -793,7 +793,6 @@ function load_candidate_table() {
             to_date: dashboard_filters.to_date,
             limit: candidate_table_state.limit,
             offset: candidate_table_state.offset,
-
             department: candidate_table_filters.department,
             current_designation: candidate_table_filters.current_designation,
             min_experience: candidate_table_filters.min_experience,
@@ -932,8 +931,9 @@ function render_jobs_table(data, total) {
         <table class="table table-bordered table-striped table-hover">
             <thead>
                 <tr>
-                    <th>Designation</th>
+                    <th>Job Opening</th>
                     <th>Company</th>
+                    <th>Designation</th>
                     <th>Department</th>
                     <th>Recruiter</th>
                     <th>Status</th>
@@ -953,8 +953,9 @@ function render_jobs_table(data, total) {
         data.forEach(d => {
             table.find("tbody").append(`
                 <tr>
-                    <td><a href="/app/dkp_job_opening/${d.name}">${d.designation || "-"}</a></td>
+                    <td><a href="/app/dkp_job_opening/${d.name}">${d.name || "-"}</a></td>
                     <td>${d.company || "-"}</td>
+                    <td>${d.designation || "-"}</td>
                     <td>${d.department || "-"}</td>
                     <td>${d.recruiter || "-"}</td>
                     <td>${d.status || "-"}</td>

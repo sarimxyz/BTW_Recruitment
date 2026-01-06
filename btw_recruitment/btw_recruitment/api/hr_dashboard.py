@@ -475,7 +475,12 @@ def get_candidate_table(
         filters.append(["department", "=", department])
 
     if current_designation:
-        filters.append(["current_designation", "=", current_designation])
+        filters.append([
+            "current_designation",
+            "like",
+            f"%{current_designation}%"
+        ])
+
 
     if min_experience not in (None, "", "null"):
         filters.append(
@@ -528,16 +533,6 @@ def get_candidate_table(
         limit_start=offset,
         limit_page_length=limit
     )
-
-    # ---------------- Total Count ----------------
-#     total = len(
-#     frappe.get_all(
-#         "DKP_Candidate",
-#         filters=filters,
-#         or_filters=or_filters,
-#         pluck="name"
-#     )
-# ) 
     # ---------------- Total Count ----------------
     if or_filters:
         total = len(
