@@ -165,7 +165,6 @@ function render_company_kpi_cards(data) {
         "Active Clients": "/app/dkp_company?client_status=Active",
         "Inactive Clients": "/app/dkp_company?client_status=Inactive",
         "Companies with Open Jobs": "/app/dkp_job_opening?status=Open",
-        "Companies with Active Applications": "/app/dkp_job_application"
     };
 
     const $row = $("#company-kpi-cards");

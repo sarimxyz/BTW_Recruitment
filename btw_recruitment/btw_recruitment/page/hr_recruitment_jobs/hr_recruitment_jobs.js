@@ -236,18 +236,7 @@ function render_job_kpi_cards(data) {
             value: data.priority_jobs,
             link: "/app/dkp_job_opening?priority=Critical"
         },
-        {
-            label: "Total Open Positions",
-            value: data.total_positions,
-            clickable: false,
-            // link: "/app/dkp_job_opening?status=Open"
-
-        },
-        {
-            label: "SLA Breached Jobs",
-            value: data.sla_breached_jobs,
-            clickable: false
-        }
+        
     ];
 
     const $row = $("#job-kpi-cards");
