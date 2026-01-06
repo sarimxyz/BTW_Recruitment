@@ -42,6 +42,7 @@
   "urgency",
   "received_on",
   "candidates_tab",
+  "suggest_candidates",
   "candidates_table"
  ],
  "fields": [
@@ -271,12 +272,17 @@
    "fieldtype": "Table",
    "label": "Candidates Table",
    "options": "DKP_JobApplication_Child"
+  },
+  {
+   "fieldname": "suggest_candidates",
+   "fieldtype": "Button",
+   "label": "Suggest Candidates"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-05 17:27:55.783630",
+ "modified": "2026-01-06 14:15:23.936657",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Job_Opening",

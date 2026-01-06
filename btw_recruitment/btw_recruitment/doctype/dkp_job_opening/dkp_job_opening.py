@@ -1,8 +1,8 @@
 import frappe
 from frappe.model.document import Document
 
-class DKP_Job_Opening(Document):
 
+class DKP_Job_Opening(Document):
     def on_update(self):
         self.send_job_opening_email()
 
@@ -10,7 +10,7 @@ class DKP_Job_Opening(Document):
         if not self.assign_recruiter:
             return
 
-        recruiter_email = self.assign_recruiter  # 👈 already email
+        recruiter_email = self.assign_recruiter  # already email
 
         subject = f"New Job Opening Assigned – {self.name}"
 
@@ -32,5 +32,271 @@ class DKP_Job_Opening(Document):
         frappe.sendmail(
             recipients=[recruiter_email],
             subject=subject,
-            content=html_content
+            content=html_content,
         )
+
+
+@frappe.whitelist()
+def get_matching_candidates(job_opening_name=None, existing_candidates=None):
+    """
+    Get candidate suggestions based on job opening criteria matching.
+    Matches candidates on: designation, skills, experience, location, certifications.
+    Uses the exact name of the job opening document.
+    """
+    if not job_opening_name:
+        return {"success": False, "message": "Job opening name is required"}
+
+    # Get job opening document directly using the exact name
+    try:
+        job_opening = frappe.get_doc("DKP_Job_Opening", job_opening_name)
+    except frappe.DoesNotExistError:
+        return {"success": False, "message": f"Job opening '{job_opening_name}' not found"}
+    except Exception as e:  # pragma: no cover - defensive
+        return {"success": False, "message": f"Error fetching job opening: {str(e)}"}
+
+    # Get already added candidates to exclude them
+    # Handle existing_candidates parameter (from unsaved form or saved document)
+    if existing_candidates:
+        if isinstance(existing_candidates, str):
+            # If it's a string, try to parse it as JSON
+            try:
+                existing_candidates = frappe.parse_json(existing_candidates)
+            except Exception:
+                # If not JSON, treat as single value or comma-separated
+                existing_candidates = [c.strip() for c in existing_candidates.split(",") if c.strip()]
+        elif not isinstance(existing_candidates, list):
+            existing_candidates = []
+    else:
+        existing_candidates = []
+
+    # Build matching criteria from job opening
+    criteria = {
+        "designation": job_opening.designation,
+        "must_have_skills": job_opening.must_have_skills or "",
+        "good_to_have_skills": job_opening.good_to_have_skills or "",
+        "required_certifications": job_opening.required_certifications or "",
+        "min_experience": job_opening.min_experience_years or 0,
+        "max_experience": job_opening.max_experience_years or 999,
+        "location": job_opening.location or "",
+        "department": job_opening.department or "",
+        "gender_preference": (job_opening.gender_preference or "").strip(),
+        "min_ctc": (job_opening.min_ctc or "").strip(),
+        "max_ctc": (job_opening.max_ctc or "").strip(),
+    }
+
+    # Get all candidates (excluding blacklisted and already added)
+    candidate_filters = {"blacklisted": 0}
+
+    if existing_candidates:
+        candidate_filters["name"] = ["not in", existing_candidates]
+
+    all_candidates = frappe.get_all(
+        "DKP_Candidate",
+        filters=candidate_filters,
+        fields=[
+            "name",
+            "candidate_name",
+            "current_designation",
+            "total_experience_years",
+            "skills_tags",
+            "primary_skill_set",
+            "secondary_skill_set",
+            "key_certifications",
+            "current_location",
+            "department",
+            "current_ctc",
+            "expected_ctc",
+            "email",
+            "mobile_number",
+            "current_company_master",
+            "gender",
+            "age",
+        ],
+    )
+
+    # Score and match candidates
+    matched_candidates = []
+
+    for candidate in all_candidates:
+        category_scores: list[float] = []
+        match_reasons: list[str] = []
+
+        # 1. Designation match
+        if criteria["designation"] and candidate.current_designation:
+            if (
+                criteria["designation"].lower() in candidate.current_designation.lower()
+                or candidate.current_designation.lower() in criteria["designation"].lower()
+            ):
+                category_scores.append(1.0)
+                match_reasons.append("Designation match")
+            else:
+                category_scores.append(0.0)
+
+        # 2. Experience match
+        candidate_exp = candidate.total_experience_years or 0
+        if criteria["min_experience"] <= candidate_exp <= criteria["max_experience"]:
+            category_scores.append(1.0)
+            match_reasons.append("Experience within range")
+        elif candidate_exp >= criteria["min_experience"]:
+            category_scores.append(0.6)
+            match_reasons.append("Experience above minimum")
+        else:
+            category_scores.append(0.0)
+
+        # 3. Skills match
+        # Parse skills - handle comma, semicolon, or newline separated
+        def parse_skills(skills_str):
+            if not skills_str:
+                return []
+            # Split by comma, semicolon, or newline
+            for delimiter in [",", ";", "\n"]:
+                if delimiter in skills_str:
+                    return [s.strip().lower() for s in skills_str.split(delimiter) if s.strip()]
+            # If no delimiter, treat as single skill or space-separated
+            return [s.strip().lower() for s in skills_str.split() if s.strip()]
+
+        must_have_skills = parse_skills(criteria["must_have_skills"])
+        good_to_have_skills = parse_skills(criteria["good_to_have_skills"])
+
+        # Build candidate skills string
+        candidate_skills = ""
+        if candidate.skills_tags:
+            candidate_skills += " " + candidate.skills_tags.lower()
+        if candidate.primary_skill_set:
+            candidate_skills += " " + candidate.primary_skill_set.lower()
+        if candidate.secondary_skill_set:
+            candidate_skills += " " + candidate.secondary_skill_set.lower()
+
+        # Check for skill matches (partial matching)
+        must_have_matches = sum(1 for skill in must_have_skills if skill in candidate_skills)
+        good_to_have_matches = sum(1 for skill in good_to_have_skills if skill in candidate_skills)
+
+        skill_score = None
+        if must_have_skills or good_to_have_skills:
+            # weight must-have more than good-to-have but keep result 0–1
+            base_score = 0.0
+            weight_total = 0.0
+            if must_have_skills:
+                base_score += (must_have_matches / len(must_have_skills)) * 0.8
+                weight_total += 0.8
+            if good_to_have_skills:
+                base_score += (good_to_have_matches / len(good_to_have_skills)) * 0.2
+                weight_total += 0.2
+            if weight_total:
+                skill_score = min(1.0, base_score / weight_total)
+                category_scores.append(skill_score)
+                if must_have_skills and must_have_matches > 0:
+                    match_reasons.append(f"{must_have_matches}/{len(must_have_skills)} must-have skills")
+                if good_to_have_skills and good_to_have_matches > 0:
+                    match_reasons.append(f"{good_to_have_matches}/{len(good_to_have_skills)} good-to-have skills")
+
+        # 4. Certifications match
+        if criteria["required_certifications"]:
+            # Parse certifications similar to skills
+            certs_str = criteria["required_certifications"]
+            required_certs = []
+            for delimiter in [",", ";", "\n"]:
+                if delimiter in certs_str:
+                    required_certs = [c.strip().lower() for c in certs_str.split(delimiter) if c.strip()]
+                    break
+            if not required_certs:
+                required_certs = [c.strip().lower() for c in certs_str.split() if c.strip()]
+
+            candidate_certs = (candidate.key_certifications or "").lower()
+            cert_matches = sum(1 for cert in required_certs if cert in candidate_certs)
+            if cert_matches > 0:
+                cert_score = min(1.0, (cert_matches / len(required_certs)))
+                category_scores.append(cert_score)
+                match_reasons.append(f"{cert_matches}/{len(required_certs)} certifications")
+            else:
+                category_scores.append(0.0)
+
+        # 5. Location match
+        if criteria["location"] and candidate.current_location:
+            if (
+                criteria["location"].lower() in candidate.current_location.lower()
+                or candidate.current_location.lower() in criteria["location"].lower()
+            ):
+                category_scores.append(1.0)
+                match_reasons.append("Location match")
+            else:
+                category_scores.append(0.0)
+
+        # 6. Gender match
+        gender_pref = criteria.get("gender_preference")
+        cand_gender = (candidate.gender or "").strip()
+        if gender_pref and gender_pref not in ("NA", "Any"):
+            if cand_gender and cand_gender == gender_pref:
+                category_scores.append(1.0)
+                match_reasons.append(f"Gender match ({cand_gender})")
+            else:
+                category_scores.append(0.0)
+
+        # 7. CTC match (using expected_ctc if available, else current_ctc)
+        def parse_number(raw):
+            if not raw:
+                return None
+            try:
+                # Remove non-numeric except dot
+                import re
+
+                cleaned = re.sub(r"[^0-9.]", "", str(raw))
+                return float(cleaned) if cleaned else None
+            except Exception:
+                return None
+
+        min_ctc = parse_number(criteria.get("min_ctc"))
+        max_ctc = parse_number(criteria.get("max_ctc"))
+        cand_ctc = parse_number(candidate.expected_ctc or candidate.current_ctc)
+
+        if cand_ctc is not None and (min_ctc is not None or max_ctc is not None):
+            in_range = True
+            if min_ctc is not None and cand_ctc < min_ctc:
+                in_range = False
+            if max_ctc is not None and cand_ctc > max_ctc:
+                in_range = False
+            if in_range:
+                category_scores.append(1.0)
+                match_reasons.append("CTC within range")
+            else:
+                category_scores.append(0.0)
+
+        # Compute final score as average of category scores (equal weight)
+        category_scores = [s for s in category_scores if s is not None]
+        if not category_scores:
+            continue
+
+        match_score = (sum(category_scores) / len(category_scores)) * 100.0
+
+        # Only include candidates with match_score > 0 (blacklisted are already filtered out)
+        if match_score > 0:
+            candidate["match_score"] = round(match_score, 1)
+            candidate["match_reasons"] = match_reasons
+
+            # Check no-poach status
+            candidate["is_no_poach"] = False
+            candidate["no_poach_company"] = ""
+            if candidate.get("current_company_master"):
+                no_poach_flag = frappe.db.get_value(
+                    "DKP_Company", candidate.current_company_master, "no_poach_flag"
+                )
+                if no_poach_flag:
+                    candidate["is_no_poach"] = True
+                    candidate["no_poach_company"] = candidate.current_company_master
+
+            matched_candidates.append(candidate)
+
+    # Sort by match score (highest first)
+    matched_candidates.sort(key=lambda x: x["match_score"], reverse=True)
+
+    # Limit to top 20 matches
+    matched_candidates = matched_candidates[:20]
+
+    return {
+        "success": True,
+        "candidates": matched_candidates,
+        "total_matched": len(matched_candidates),
+        "job_opening": job_opening_name,
+        "criteria": criteria,
+    }
+
