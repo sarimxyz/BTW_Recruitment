@@ -5,7 +5,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "job_application_id",
   "candidate",
   "job_opening_id",
   "job_opening_title",
@@ -19,12 +18,6 @@
   "feedback"
  ],
  "fields": [
-  {
-   "fieldname": "job_application_id",
-   "fieldtype": "Link",
-   "label": "Job Application ID",
-   "options": "DKP_Job_Application"
-  },
   {
    "fetch_from": "job_application_id.candidate_name",
    "fieldname": "candidate",
@@ -91,7 +84,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-26 10:22:09.363970",
+ "modified": "2026-01-07 13:36:21.423482",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Interview",

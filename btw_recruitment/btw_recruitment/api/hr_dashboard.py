@@ -101,14 +101,119 @@ def get_urgent_openings(from_date=None, to_date=None):
         filters=filters,
         order_by="modified desc"
     )
+# import frappe
+# from frappe.utils import now_datetime, add_days
+# from frappe.utils import format_datetime
+
+# @frappe.whitelist()
+# def get_job_health(from_date=None, to_date=None, limit=10, offset=0,department=None,
+# priority=None,
+# sla_status=None):
+#     limit = int(limit)
+#     offset = int(offset)
+
+#     job_filters = []
+
+#     # ---------------- DATE FILTER ----------------
+#     if from_date and to_date:
+#         job_filters.append([
+#             "creation",
+#             "between",
+#             [from_date, add_days(to_date, 1)]
+#         ])
+#     # Department
+#     if department:
+#         job_filters.append(["department", "=", department])
+
+#     # Priority
+#     if priority:
+#         job_filters.append(["priority", "=", priority])
+
+#     # SLA Status
+#     if sla_status:
+#         if sla_status == "Open":
+#             job_filters.append(["status", "=", "Open"])
+#         elif sla_status == "On Hold":
+#             job_filters.append(["status", "=", "On Hold"])
+#         elif sla_status == "Closed – Hired":
+#             job_filters.append(["status", "=", "Closed – Hired"])
+#         elif sla_status == "Closed – Cancelled":
+#             job_filters.append(["status", "=", "Closed – Cancelled"])
+
+#     # ---------------- FETCH JOBS ----------------
+#     jobs = frappe.get_all(
+#         "DKP_Job_Opening",
+#         fields=[
+#             "name",
+#             "designation",
+#             "company",
+#             "department",
+#             "number_of_positions",
+#             "status",
+#             "priority",
+#                     "creation"   # 👈 REQUIRED for ageing
+
+#         ],
+#         filters=job_filters,
+#         limit_start=offset,
+#         limit_page_length=limit
+#     )
+
+#     # Total count (for pagination)
+#     total = frappe.db.count(
+#         "DKP_Job_Opening",
+#         filters=job_filters
+#     )
+
+#     now = now_datetime()
+#     result = []
+
+#     for job in jobs:
+#         # ---------------- CANDIDATE COUNT ----------------
+#         job_applications = frappe.get_all(
+#             "DKP_Job_Application",
+#             filters={"job_opening_title": job.name},
+#             pluck="name"
+#         )
+
+#         candidate_count = 0
+#         if job_applications:
+#             candidate_count = frappe.db.count(
+#                 "DKP_JobApplication_Child",
+#                 {
+#                     "parent": ["in", job_applications],
+#                     "parenttype": "DKP_Job_Application",
+#                     "stage": ["in", ["In Review", "Screening", "Interview", "Offered","","Rejected","Offer Drop"]]
+#                 }
+#             )
+
+#         positions = int(job.number_of_positions or 0)
+
+#         result.append({
+#             "job_opening": job.name,
+#             "designation":job.designation,
+#             "department": job.department,
+#             "positions": positions,
+#             "candidates": candidate_count,
+#             "status": job.status,
+#             "priority": job.priority,
+#         })
+
+#     return {"total": total, "data": result}
+
 import frappe
 from frappe.utils import now_datetime, add_days
-from frappe.utils import format_datetime
 
 @frappe.whitelist()
-def get_job_health(from_date=None, to_date=None, limit=10, offset=0,department=None,
-priority=None,
-sla_status=None):
+def get_job_health(
+    from_date=None,
+    to_date=None,
+    limit=10,
+    offset=0,
+    department=None,
+    priority=None,
+    sla_status=None
+):
     limit = int(limit)
     offset = int(offset)
 
@@ -121,6 +226,7 @@ sla_status=None):
             "between",
             [from_date, add_days(to_date, 1)]
         ])
+
     # Department
     if department:
         job_filters.append(["department", "=", department])
@@ -129,16 +235,9 @@ sla_status=None):
     if priority:
         job_filters.append(["priority", "=", priority])
 
-    # SLA Status
+    # Status (SLA Status)
     if sla_status:
-        if sla_status == "Open":
-            job_filters.append(["status", "=", "Open"])
-        elif sla_status == "On Hold":
-            job_filters.append(["status", "=", "On Hold"])
-        elif sla_status == "Closed – Hired":
-            job_filters.append(["status", "=", "Closed – Hired"])
-        elif sla_status == "Closed – Cancelled":
-            job_filters.append(["status", "=", "Closed – Cancelled"])
+        job_filters.append(["status", "=", sla_status])
 
     # ---------------- FETCH JOBS ----------------
     jobs = frappe.get_all(
@@ -151,87 +250,58 @@ sla_status=None):
             "number_of_positions",
             "status",
             "priority",
-            "sla_due_date"
+            "creation"   # required for ageing
         ],
         filters=job_filters,
         limit_start=offset,
         limit_page_length=limit
     )
 
-    # Total count (for pagination)
-    total = frappe.db.count(
-        "DKP_Job_Opening",
-        filters=job_filters
-    )
+    # Total count (pagination)
+    total = frappe.db.count("DKP_Job_Opening", filters=job_filters)
 
     now = now_datetime()
     result = []
 
     for job in jobs:
+        # ---------------- AGEING ----------------
+        ageing_days = (now - job.creation).days if job.creation else 0
+
         # ---------------- CANDIDATE COUNT ----------------
-        job_applications = frappe.get_all(
-            "DKP_Job_Application",
-            filters={"job_opening_title": job.name},
-            pluck="name"
-        )
-
-        candidate_count = 0
-        if job_applications:
-            candidate_count = frappe.db.count(
-                "DKP_JobApplication_Child",
-                {
-                    "parent": ["in", job_applications],
-                    "parenttype": "DKP_Job_Application",
-                    "stage": ["in", ["In Review", "Screening", "Interview", "Offered","","Rejected","Offer Drop"]]
-                }
-            )
-
-        positions = int(job.number_of_positions or 0)
-
-        CLOSED_STATUSES = ["Closed – Hired", "Closed – Cancelled"]
-        # ---------------- SLA STATUS ----------------
-        sla_status = "On Track"
-
-        if job.status in CLOSED_STATUSES:
-            sla_status = job.status
-        else:
-            if job.sla_due_date:
-                sla_due = get_datetime(job.sla_due_date)
-
-                if sla_due < now:
-                    sla_status = "Breached"
-                elif sla_due <= add_days(now, 3):
-                    sla_status = "At Risk"
-                else:
-                    sla_status = "On Track"
-
-        job_applications = frappe.get_all(
-            "DKP_Job_Application",
-            fields=["name"],
+        candidate_count = frappe.db.count(
+            "DKP_JobApplication_Child",
             filters={
-                "company_name": job.company   # SAME LINK FIELD
+                "parent": job.name,
+                "parenttype": "DKP_Job_Opening",
+                "stage": ["in", [
+                    "In Review",
+                    "Screening",
+                    "Interview",
+                    "Offered",
+                    "",
+                    "Rejected",
+                    "Offer Drop"
+                ]]
             }
         )
 
-        application_links = [app.name for app in job_applications]
+        positions = int(job.number_of_positions or 0)
+
         result.append({
             "job_opening": job.name,
-            "designation":job.designation,
+            "designation": job.designation,
             "department": job.department,
             "positions": positions,
             "candidates": candidate_count,
             "status": job.status,
             "priority": job.priority,
-            "sla_status": sla_status,
-            "sla_due_date": format_datetime(
-            job.sla_due_date,
-            "dd-MM-yyyy hh:mm a"
-        ) if job.sla_due_date else None,
-
-            "job_applications": application_links
+            "ageing_days": ageing_days
         })
 
-    return {"total": total, "data": result}
+    return {
+        "total": total,
+        "data": result
+    }
 
 
 import frappe

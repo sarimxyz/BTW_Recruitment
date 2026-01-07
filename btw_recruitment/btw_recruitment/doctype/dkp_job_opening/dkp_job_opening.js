@@ -38,23 +38,6 @@ function show_opening_candidate_suggestions(frm) {
             .map(row => row.candidate_name);
     }
 
-    // Also get from database if needed (child rows already saved)
-    frappe.call({
-        method: "frappe.client.get_list",
-        args: {
-            doctype: "DKP_JobApplication_Child",
-            filters: { parent: job_opening_name },
-            fields: ["candidate_name"]
-        },
-        async: false,
-        callback(r) {
-            if (r.message) {
-                const db_candidates = r.message.map(row => row.candidate_name);
-                existing_candidates = [...new Set([...existing_candidates, ...db_candidates])];
-            }
-        }
-    });
-
     // Fetch matching candidates - use the exact name of the Job Opening
     frappe.call({
         method: "btw_recruitment.btw_recruitment.doctype.dkp_job_opening.dkp_job_opening.get_matching_candidates",
@@ -92,20 +75,79 @@ function show_opening_candidate_suggestions(frm) {
 
 function show_opening_candidates_dialog(frm, candidates, criteria) {
     let selected_candidates = [];
+    // Track selected candidates across pages by candidate.name
+    let selected_map = {};
     const page_size = 10;
     let current_page = 1;
     let filtered_candidates = [...candidates];
 
-    // Base HTML structure with filters, list container, and pagination
+    // Build matching criteria summary (show all categories used in scoring) in a row layout
+    const criteria_parts = [];
+    if (criteria.designation) {
+        criteria_parts.push(`<strong>Designation:</strong> ${criteria.designation}`);
+    }
+    if (criteria.min_experience || criteria.max_experience) {
+        const minExp = criteria.min_experience || 0;
+        const maxExp = criteria.max_experience || "∞";
+        criteria_parts.push(
+            `<strong>Experience:</strong> ${minExp}-${maxExp} years`
+        );
+    }
+    if (criteria.must_have_skills) {
+        criteria_parts.push(
+            `<strong>Must-have Skills:</strong> ${criteria.must_have_skills}`
+        );
+    }
+    if (criteria.good_to_have_skills) {
+        criteria_parts.push(
+            `<strong>Good-to-have Skills:</strong> ${criteria.good_to_have_skills}`
+        );
+    }
+    if (criteria.required_certifications) {
+        criteria_parts.push(
+            `<strong>Certifications:</strong> ${criteria.required_certifications}`
+        );
+    }
+    if (criteria.location) {
+        criteria_parts.push(`<strong>Location:</strong> ${criteria.location}`);
+    }
+    if (criteria.gender_preference && !["NA", "Any"].includes(criteria.gender_preference)) {
+        criteria_parts.push(
+            `<strong>Gender Preference:</strong> ${criteria.gender_preference}`
+        );
+    }
+    if (criteria.min_ctc || criteria.max_ctc) {
+        const minCtc = criteria.min_ctc || "NA";
+        const maxCtc = criteria.max_ctc || "NA";
+        criteria_parts.push(
+            `<strong>CTC Range:</strong> ${minCtc} – ${maxCtc}</strong>`
+        );
+    }
+
+    const criteria_html =
+        criteria_parts.length > 0
+            ? `<div class="row">
+                    ${criteria_parts
+                        .map(
+                            part =>
+                                `<div class="col-sm-4 mb-1" style="font-size:0.85em; color:#495057;">${part}</div>`
+                        )
+                        .join("")}
+               </div>`
+            : `<div class="row">
+                    <div class="col-sm-12">
+                        <em>No specific criteria; showing all non-blacklisted candidates.</em>
+                    </div>
+               </div>`;
+
+    // Base HTML structure with filters, list container, pagination, and selected count
     let candidates_html = `
         <div>
             <div class="mb-3 p-2" style="background: #f8f9fa; border-radius: 4px;">
-                <strong>Matching Criteria:</strong><br>
-                <small>
-                    Designation: ${criteria.designation || "Any"} |
-                    Experience: ${criteria.min_experience || 0}-${criteria.max_experience || "∞"} years |
-                    Location: ${criteria.location || "Any"}
-                </small>
+                <strong>Matching Criteria:</strong>
+                <div style="margin-top: 4px;">
+                    ${criteria_html}
+                </div>
             </div>
             <div class="row mb-2">
                 <div class="col-sm-4 mb-2">
@@ -155,7 +197,7 @@ function show_opening_candidates_dialog(frm, candidates, criteria) {
     `;
 
     let d = new frappe.ui.Dialog({
-        title: `Matching Candidates (${candidates.length} found)`,
+        title: `Matching Candidates`,
         size: "large",
         fields: [
             {
@@ -165,24 +207,23 @@ function show_opening_candidates_dialog(frm, candidates, criteria) {
         ],
         primary_action_label: "Add Selected",
         primary_action: () => {
-            // Get selected candidates and filter out no-poach
+            // Build selected candidate list from persistent selection map
             selected_candidates = [];
             let blocked_candidates = [];
 
-            d.$wrapper.find(".candidate-checkbox:checked").each(function () {
-                const candidate_name = $(this).data("candidate");
-                const candidate = candidates.find(c => c.name === candidate_name);
-
-                if (candidate) {
-                    if (candidate.is_no_poach) {
-                        blocked_candidates.push({
-                            name: candidate.candidate_name || candidate.name,
-                            reason: "no-poach",
-                            company: candidate.no_poach_company
-                        });
-                    } else {
-                        selected_candidates.push(candidate_name);
-                    }
+            candidates.forEach(candidate => {
+                const candidate_name = candidate.name;
+                if (!selected_map[candidate_name]) {
+                    return;
+                }
+                if (candidate.is_no_poach) {
+                    blocked_candidates.push({
+                        name: candidate.candidate_name || candidate.name,
+                        reason: "no-poach",
+                        company: candidate.no_poach_company
+                    });
+                } else {
+                    selected_candidates.push(candidate_name);
                 }
             });
 
@@ -220,6 +261,28 @@ function show_opening_candidates_dialog(frm, candidates, criteria) {
         secondary_action: () => d.hide()
     });
     d.show();
+
+    function ensureSelectedCountFooter() {
+        const $footer = d.$wrapper.find(".modal-footer");
+        if (!$footer.find("#opening-selected-count").length) {
+            const countHtml = `
+                <div id="opening-selected-count"
+                     class="text-muted mr-auto"
+                     style="font-size: 0.85em;">
+                    Selected: 0 candidate(s)
+                </div>`;
+            // Place it on the left side of the footer, same row as buttons
+            $footer.prepend(countHtml);
+        }
+    }
+
+    function updateSelectedCount() {
+        const count = Object.keys(selected_map).length;
+        ensureSelectedCountFooter();
+        d.$wrapper
+            .find("#opening-selected-count")
+            .text(`Selected: ${count} candidate(s)`);
+    }
 
     // ---- Filtering & Pagination Helpers ----
     function applyFilters() {
@@ -384,6 +447,24 @@ function show_opening_candidates_dialog(frm, candidates, criteria) {
             });
         }
 
+        // Restore checkbox state from selection map and bind change handlers
+        d.$wrapper.find(".candidate-checkbox").each(function () {
+            const candidate_name = $(this).data("candidate");
+            if (selected_map[candidate_name]) {
+                $(this).prop("checked", true);
+            }
+        });
+
+        d.$wrapper.find(".candidate-checkbox").off("change").on("change", function () {
+            const candidate_name = $(this).data("candidate");
+            if ($(this).is(":checked")) {
+                selected_map[candidate_name] = true;
+            } else {
+                delete selected_map[candidate_name];
+            }
+            updateSelectedCount();
+        });
+
         // Render pagination controls
         const $pager = d.$wrapper.find("#opening-candidates-pagination");
         $pager.empty();
@@ -448,6 +529,7 @@ function show_opening_candidates_dialog(frm, candidates, criteria) {
 
     // Initial render
     applyFilters();
+    updateSelectedCount();
 }
 
 function add_candidates_to_opening(frm, candidate_names) {

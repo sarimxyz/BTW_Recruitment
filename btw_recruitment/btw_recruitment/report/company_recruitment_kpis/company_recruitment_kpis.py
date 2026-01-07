@@ -68,18 +68,18 @@ def execute(filters=None):
         )[0][0] or 0
 
     # ---------------- KPI 5: Companies with Active Applications ----------------
-    companies_with_active_applications = 0
-    if company_names:
-        companies_with_active_applications = frappe.db.sql(
-            """
-            SELECT COUNT(DISTINCT jo.company)
-            FROM `tabDKP_Job_Application` ja
-            INNER JOIN `tabDKP_Job_Opening` jo
-                ON ja.job_opening_title = jo.name
-            WHERE jo.company IN %(companies)s
-            """,
-            {"companies": tuple(company_names)}
-        )[0][0] or 0
+    # companies_with_active_applications = 0
+    # if company_names:
+    #     companies_with_active_applications = frappe.db.sql(
+    #         """
+    #         SELECT COUNT(DISTINCT jo.company)
+    #         FROM `tabDKP_Job_Application` ja
+    #         INNER JOIN `tabDKP_Job_Opening` jo
+    #             ON ja.job_opening_title = jo.name
+    #         WHERE jo.company IN %(companies)s
+    #         """,
+    #         {"companies": tuple(company_names)}
+    #     )[0][0] or 0
 
     # ---------------- KPI CARD DATA ----------------
     data = [
@@ -87,7 +87,7 @@ def execute(filters=None):
         {"kpi": "Active Clients", "value": active_clients},
         {"kpi": "Inactive Clients", "value": inactive_clients},
         {"kpi": "Companies with Open Jobs", "value": companies_with_open_jobs},
-        {"kpi": "Companies with Active Applications", "value": companies_with_active_applications},
+        # {"kpi": "Companies with Active Applications", "value": companies_with_active_applications},
     ]
 
     # ---------------- CHART: Industry-wise Client Count ----------------
