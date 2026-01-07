@@ -31,8 +31,8 @@
   "secondary_skill_set",
   "key_certifications",
   "preferred_locationselect_upto_3_section",
-  "current_ctc",
-  "expected_ctc",
+  "current_ctc_monthly",
+  "expected_ctc_monthly",
   "communication_skill",
   "variableincentive",
   "column_break_xcop",
@@ -48,6 +48,7 @@
   "test_tab",
   "eq_test_score",
   "eq_test_upload",
+  "disc_score",
   "blacklist_tab",
   "blacklisted",
   "blacklist_reason",
@@ -117,18 +118,6 @@
    "fieldname": "current_designation",
    "fieldtype": "Data",
    "label": "Current Designation"
-  },
-  {
-   "fieldname": "current_ctc",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Current CTC"
-  },
-  {
-   "fieldname": "expected_ctc",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Expected CTC"
   },
   {
    "fieldname": "last_working_day",
@@ -255,12 +244,12 @@
   {
    "fieldname": "test_tab",
    "fieldtype": "Tab Break",
-   "label": "Test"
+   "label": "Assessment"
   },
   {
    "fieldname": "eq_test_score",
    "fieldtype": "Float",
-   "label": "EQ test Score"
+   "label": "EQ Test Score"
   },
   {
    "fieldname": "eq_test_upload",
@@ -319,12 +308,29 @@
    "fieldtype": "Link",
    "label": "Current Company Master",
    "options": "DKP_Company"
+  },
+  {
+   "fieldname": "current_ctc_monthly",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Current CTC Monthly"
+  },
+  {
+   "fieldname": "expected_ctc_monthly",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Expected CTC Monthly"
+  },
+  {
+   "fieldname": "disc_score",
+   "fieldtype": "Float",
+   "label": "DISC Score"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-22 17:50:43.760958",
+ "modified": "2026-01-07 14:09:28.470541",
  "modified_by": "Administrator",
  "module": "BTW Recruitment",
  "name": "DKP_Candidate",

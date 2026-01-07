@@ -76,7 +76,7 @@ def get_matching_candidates(job_opening_name=None, existing_candidates=None):
         "good_to_have_skills": job_opening.good_to_have_skills or "",
         "required_certifications": job_opening.required_certifications or "",
         "min_experience": job_opening.min_experience_years or 0,
-        "max_experience": job_opening.max_experience_years or 999,
+        "max_experience": job_opening.max_experience_years or 99,
         "location": job_opening.location or "",
         "department": job_opening.department or "",
         "gender_preference": (job_opening.gender_preference or "").strip(),
@@ -104,8 +104,8 @@ def get_matching_candidates(job_opening_name=None, existing_candidates=None):
             "key_certifications",
             "current_location",
             "department",
-            "current_ctc",
-            "expected_ctc",
+            "current_ctc_monthly as current_ctc",
+            "expected_ctc_monthly as expected_ctc",
             "email",
             "mobile_number",
             "current_company_master",
@@ -138,7 +138,7 @@ def get_matching_candidates(job_opening_name=None, existing_candidates=None):
             category_scores.append(1.0)
             match_reasons.append("Experience within range")
         elif candidate_exp >= criteria["min_experience"]:
-            category_scores.append(0.6)
+            category_scores.append(0.5)
             match_reasons.append("Experience above minimum")
         else:
             category_scores.append(0.0)
@@ -177,11 +177,11 @@ def get_matching_candidates(job_opening_name=None, existing_candidates=None):
             base_score = 0.0
             weight_total = 0.0
             if must_have_skills:
-                base_score += (must_have_matches / len(must_have_skills)) * 0.8
-                weight_total += 0.8
+                base_score += (must_have_matches / len(must_have_skills)) * 0.5
+                weight_total += 0.5
             if good_to_have_skills:
-                base_score += (good_to_have_matches / len(good_to_have_skills)) * 0.2
-                weight_total += 0.2
+                base_score += (good_to_have_matches / len(good_to_have_skills)) * 0.5
+                weight_total += 0.5
             if weight_total:
                 skill_score = min(1.0, base_score / weight_total)
                 category_scores.append(skill_score)
