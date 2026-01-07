@@ -435,59 +435,6 @@ function load_job_health() {
     });
 }
 
-// function render_priority_badge(priority) {
-//     const p = (priority || "").toLowerCase();
-
-//     // const color_map = {
-//     //     low: "#6c757d",       // grey
-//     //     medium: "#6c757d",    // blue
-//     //     high: "#6c757d",       // amber
-//     //     critical: "#6c757d",    // red
-//     // };
-
-//     const color = color_map[p] || "#cccccc";
-
-//     return `
-//         <span style="
-//             background:${color};
-//             color:#fff;
-//             padding:4px 10px;
-//             border-radius:999px;
-//             font-size:12px;
-//             font-weight:500;
-//             white-space:nowrap;
-//             display:inline-block;
-//         ">
-//             ${priority || "-"}
-//         </span>
-//     `;
-// }
-function render_sla_badge(status) {
-    const s = (status || "").toLowerCase();
-
-    let color = "#6c757d"; // default grey
-
-    if (s === "on track") color = "#00c3ff81";       // green
-    else if (s === "at risk") color = "#f0ad4e";   // amber
-    else if (s === "breached") color = "#d9534f";  // red
-    else if (s === "closed – hired") color = "#5cb85c";    // blue
-
-    return `
-        <span style="
-            background:${color};
-            color:#fff;
-            padding:4px 10px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:500;
-            white-space:nowrap;
-            display:inline-block;
-        ">
-            ${status || "-"}
-        </span>
-    `;
-}
-
 function render_job_health_table(data, total) {
     const $container = $("#job-health-table");
     $container.empty();
@@ -502,6 +449,8 @@ function render_job_health_table(data, total) {
                     <th>Positions</th>
                     <th>Candidates</th>
                     <th>Priority</th>
+                    <th>Ageing</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -517,7 +466,8 @@ function render_job_health_table(data, total) {
                 <td>${d.positions}</td>
                 <td>${d.candidates}</td>
 				<td>${d.priority}</td>
-
+                <td>${d.ageing_days}</td>
+                <td>${d.status}</td>
             </tr>
         `).appendTo(table.find("tbody"));
     });
